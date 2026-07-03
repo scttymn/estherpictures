@@ -27,6 +27,15 @@ defmodule EstherPicturesWeb.Endpoint do
     only: EstherPicturesWeb.static_paths(),
     raise_on_missing_only: code_reloading?
 
+  # User-uploaded files (clip thumbnails) live outside the release so they
+  # survive deploys. The directory is configured per-env via
+  # `config :esther_pictures, EstherPictures.Uploads, root: ...`
+  # (priv/static/uploads in dev; a persistent path in prod).
+  plug Plug.Static,
+    at: "/uploads",
+    from: Application.compile_env(:esther_pictures, [EstherPictures.Uploads, :root]),
+    gzip: false
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

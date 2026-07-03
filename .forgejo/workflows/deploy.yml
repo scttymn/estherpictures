@@ -1,0 +1,81 @@
+# Push-to-main deploy: builds a mix release in the builder image, ships the
+# tarball to the app VM, migrates, and restarts the systemd unit.
+#
+# Forgejo repo secrets required:
+#   DEPLOY_SSH_KEY  — private key (ed25519) authorized for the deploy user
+#   DEPLOY_HOST     — app VM LAN IP (e.g. 192.168.0.54)
+#   DEPLOY_USER     — "deploy"
+#
+# App VM prereqs: run deploy/setup-app-vm.sh once, set SECRET_KEY_BASE in
+# /etc/esther_pictures.env, and point cloudflared at 127.0.0.1:4000.
+#
+# Builder image: reuses the rideclub website-builder (identical Elixir/OTP).
+# If the runner can't pull it, build & push deploy/Dockerfile.builder to
+# git.svnmns.com/estherpictures/builder:latest and swap the image below.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: docker
+    container:
+      image: git.svnmns.com/rideclub/website-builder:latest
+    env:
+      MIX_ENV: prod
+      RELEASE_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          MIX_ENV=test mix deps.get
+          MIX_ENV=test mix test
+
+      - name: Fetch prod dependencies
+        run: mix deps.get --only prod
+
+      - name: Build release
+        run: |
+          mix deps.compile
+          mix compile
+          mix assets.setup
+          mix assets.deploy
+          mix release --overwrite
+
+      - name: Package tarball
+        run: tar -czf esther_pictures-${RELEASE_SHA}.tar.gz -C _build/prod/rel esther_pictures
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat > ~/.ssh/config <<EOF
+          Host ${{ secrets.DEPLOY_HOST }}
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            IdentityFile ~/.ssh/deploy_key
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Ship release to app VM
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          scp esther_pictures-${RELEASE_SHA}.tar.gz deploy/swap.sh \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/"
+
+      - name: Swap release and restart
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "bash /tmp/swap.sh ${RELEASE_SHA}"

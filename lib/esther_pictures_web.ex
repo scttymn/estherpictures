@@ -17,7 +17,9 @@ defmodule EstherPicturesWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets css fonts images media uploads favicon.ico robots.txt)
+  # Note: "uploads" is NOT here — user uploads are served by a dedicated
+  # Plug.Static in the endpoint from a persistent, per-env root.
+  def static_paths, do: ~w(assets css fonts images media favicon.ico robots.txt)
 
   def router do
     quote do

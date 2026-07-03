@@ -24,6 +24,11 @@ config :esther_pictures,
   ecto_repos: [EstherPictures.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Where user-uploaded files (clip thumbnails) are stored and served from.
+# Dev/test use the repo's priv dir; prod overrides this with a persistent path
+# outside the release (see config/prod.exs) so uploads survive deploys.
+config :esther_pictures, EstherPictures.Uploads, root: "priv/static/uploads"
+
 # Configure the endpoint
 config :esther_pictures, EstherPicturesWeb.Endpoint,
   url: [host: "localhost"],

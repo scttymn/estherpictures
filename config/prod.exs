@@ -8,6 +8,10 @@ import Config
 config :esther_pictures, EstherPicturesWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+# User uploads live on the VM's persistent data volume, outside the release
+# directory, so they survive deploys. The deploy setup creates this path.
+config :esther_pictures, EstherPictures.Uploads, root: "/opt/estherpictures/data/uploads"
+
 # Force using SSL in production. This also sets the "strict-security-transport" header,
 # known as HSTS. If you have a health check endpoint, you may want to exclude it below.
 # Note `:force_ssl` is required to be set at compile-time.

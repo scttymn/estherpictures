@@ -69,5 +69,10 @@ defmodule EstherPictures.Uploads do
 
   defp dir_for(subdir), do: Path.join(base_dir(), subdir)
 
-  defp base_dir, do: Path.join([:code.priv_dir(:esther_pictures), "static", "uploads"])
+  # Root is configured per-env (see config/config.exs and config/prod.exs).
+  # In prod it's an absolute path on the VM's persistent volume; in dev it's
+  # priv/static/uploads relative to the project root.
+  defp base_dir do
+    Application.get_env(:esther_pictures, __MODULE__)[:root] |> Path.expand()
+  end
 end

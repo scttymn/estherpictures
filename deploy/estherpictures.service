@@ -1,0 +1,28 @@
+[Unit]
+Description=Esther Pictures Phoenix app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/estherpictures/current
+EnvironmentFile=/etc/esther_pictures.env
+ExecStart=/opt/estherpictures/current/bin/server
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Hardening. ProtectSystem=strict makes the fs read-only except ReadWritePaths.
+# /opt/estherpictures holds both the releases and the data dir (SQLite DB +
+# uploaded thumbnails), so it must be writable.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/estherpictures
+
+[Install]
+WantedBy=multi-user.target
