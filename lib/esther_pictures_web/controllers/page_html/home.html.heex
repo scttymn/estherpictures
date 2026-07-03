@@ -10,7 +10,7 @@
     </a>
     <div class="ep-nav__tag">{s.tagline}</div>
     <div class="ep-nav__links">
-      <a href="#reel">01 REEL</a>
+      <a href="#showcase">01 SHOWCASE</a>
       <a href="#craft">02 CRAFT</a>
       <a href="#ensemble">03 ENSEMBLE</a>
       <a href="#contact">04 CONTACT</a>
@@ -18,9 +18,9 @@
   </nav>
 
   <%!-- =========================================================== HERO --%>
-  <section class="ep-hero" id="reel">
+  <section class="ep-hero" id="showcase">
     <div class="ep-hero__slate">
-      <div class="ep-hero__slate-title">REEL SLATE</div>
+      <div class="ep-hero__slate-title">SLATE</div>
       <dl class="ep-slate-list" id="reel-slate">
         <div>
           <dt>TITLE</dt>
@@ -56,9 +56,9 @@
       <div id="reel-player" class="ep-reel__embed">
         <%= case active_player do %>
           <% %{kind: "youtube", muted: src} -> %>
-            <iframe src={src} title="Reel" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+            <iframe src={src} title="Showcase" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
           <% %{kind: "vimeo", muted: src} -> %>
-            <iframe src={src} title="Reel" allow="autoplay; picture-in-picture"></iframe>
+            <iframe src={src} title="Showcase" allow="autoplay; picture-in-picture"></iframe>
           <% %{kind: "file", muted: src} -> %>
             <video class="ep-reel__media" src={src} autoplay muted loop playsinline></video>
           <% _ -> %>
@@ -191,7 +191,7 @@
       if (kind === "youtube" || kind === "vimeo") {
         var f = document.createElement("iframe");
         f.src = src;
-        f.title = "Reel";
+        f.title = "Showcase";
         f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
         return f;
       }
