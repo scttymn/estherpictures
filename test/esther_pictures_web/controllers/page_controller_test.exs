@@ -7,7 +7,7 @@ defmodule EstherPicturesWeb.PageControllerTest do
     conn = get(%{conn | host: "estherpictures.com"}, ~p"/")
     body = html_response(conn, 200)
     assert body =~ "ESTHER PICTURES"
-    assert body =~ "01 REEL"
+    assert body =~ "01 SHOWCASE"
   end
 
   test "GET / on www redirects to the apex host", %{conn: conn} do
