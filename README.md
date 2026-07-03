@@ -51,27 +51,33 @@ Everything on the homepage is editable from `/admin` — no code, no redeploy:
 
 The `01–04`, `CLIP 0X`, and `A1/A2` labels are derived automatically from order.
 
-## The hero reel
+## The hero reel & clips
 
-The reel is set from the admin under **Site copy → Hero & reel** in the
-**Reel video URL** field — no code needed. It auto-detects what you paste and
-always plays **muted, looping, and chrome-less** as a background reel:
+The hero is an **interactive clip player** driven by the **Clips** you manage in
+the admin. On load, **clip 01 auto-plays, muted, looping**, and the left slate
+shows that clip's stats. Visitors can **click any clip** in the filmstrip to make
+it the active, looping clip (the slate updates to match), and there's a **sound**
+toggle to unmute.
 
-- **YouTube** link (`youtube.com/watch?v=…`, `youtu.be/…`, embed, shorts) →
-  chrome-less `youtube-nocookie` background iframe.
-- **Vimeo** link (`vimeo.com/…`) → Vimeo `background=1` mode (zero chrome).
-- **Direct file** (`.mp4` on a CDN / object storage) → native `<video>`, and the
-  optional **poster** field applies.
-- **Blank** → the styled placeholder texture.
+Each clip (admin → **Clips**) has:
+
+- **Video URL** — a YouTube or Vimeo link. It's embedded chrome-less (no
+  controls, no branding) and non-interactive, so it reads as a background reel.
+- **Slate stats** — title, runtime, format, years, status (shown while active).
+- **Thumbnail image** — an **uploaded** still (JPG/PNG/WebP/GIF, ≤5 MB). Because
+  YouTube can't export a frame at a chosen timestamp, you upload the exact still
+  you want.
 
 Notes:
-- Autoplay requires muting (a browser rule) — which matches the design's
-  "MUTED ◼" reel.
+- Autoplay requires muting (a browser rule) — matching the design's muted reel.
+  Clicking **sound** reloads the clip with audio (a fresh user gesture is
+  required to unmute, so playback restarts).
 - On load, YouTube briefly shows a title/spinner; Vimeo's background mode does
-  not — prefer Vimeo (or a direct file) if you want a perfectly clean start.
-- Local placeholder video files live in `priv/static/media/` (git-ignored — see
-  `.gitignore`). For production, host the reel on YouTube/Vimeo or object storage
-  and paste the URL.
+  not — prefer Vimeo for a perfectly clean start.
+- Uploaded thumbnails live in `priv/static/uploads/` (git-ignored). **On deploy
+  they must sit on a persistent volume** (see Deployment, TBD) or they'll be lost
+  on redeploy. Local placeholder videos, if any, live in `priv/static/media/`
+  (also git-ignored).
 
 ## Project layout
 

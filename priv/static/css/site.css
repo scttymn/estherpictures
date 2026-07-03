@@ -283,11 +283,23 @@ a {
 }
 
 .ep-clip {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   position: relative;
   aspect-ratio: 16 / 9;
+  background-color: transparent;
   background-image: repeating-linear-gradient(45deg, #171512 0 10px, #100f0d 10px 20px);
+  border: 0;
   border-right: 1px solid var(--line);
   cursor: pointer;
+  overflow: hidden;
   transition: opacity 0.15s ease;
 }
 
@@ -296,7 +308,34 @@ a {
 }
 
 .ep-clip:hover {
-  opacity: 0.75;
+  opacity: 0.85;
+}
+
+.ep-clip:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.ep-clip__thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Bottom gradient so the label stays readable over any thumbnail. */
+.ep-clip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba(11, 10, 9, 0.85), transparent);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .ep-clip__label {
@@ -304,10 +343,67 @@ a {
   left: 14px;
   bottom: 12px;
   right: 14px;
+  z-index: 2;
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.12em;
   color: var(--muted-2);
+  transition: color 0.15s ease;
+}
+
+/* Active clip: brightened label + inset ring. */
+.ep-clip.is-active {
+  opacity: 1;
+}
+.ep-clip.is-active .ep-clip__label {
+  color: var(--ink);
+}
+.ep-clip.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  box-shadow: inset 0 0 0 2px var(--ink);
+  pointer-events: none;
+}
+
+/* Sound toggle over the reel. */
+.ep-reel__sound {
+  position: absolute;
+  right: clamp(20px, 3vw, 32px);
+  bottom: 40px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 9px 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ep-reel__sound[hidden] {
+  display: none;
+}
+.ep-reel__sound:hover,
+.ep-reel__sound:focus-visible {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: var(--ink);
+  outline: none;
+}
+.ep-reel__sound-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+.ep-reel__sound.is-on .ep-reel__sound-dot {
+  background: var(--ink);
 }
 
 /* -------------------------------------------------------------- Craft ---- */

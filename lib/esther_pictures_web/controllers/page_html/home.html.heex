@@ -1,4 +1,7 @@
 <% s = @data.settings %>
+<% clips = @data.clips %>
+<% active = List.first(clips) %>
+<% active_player = active && clip_player(active) %>
 <main class="ep">
   <%!-- ============================================================ NAV --%>
   <nav class="ep-nav" aria-label="Primary">
@@ -16,80 +19,94 @@
   <section class="ep-hero" id="reel">
     <div class="ep-hero__slate">
       <div class="ep-hero__slate-title">REEL SLATE</div>
-      <dl class="ep-slate-list">
+      <dl class="ep-slate-list" id="reel-slate">
         <div>
           <dt>TITLE</dt>
-          <dd class="is-title">{s.reel_title}</dd>
+          <dd class="is-title" data-slot="title">{active && active.title}</dd>
         </div>
         <div>
           <dt>RUNTIME</dt>
-          <dd>{s.reel_runtime}</dd>
+          <dd data-slot="runtime">{active && active.runtime}</dd>
         </div>
         <div>
           <dt>FORMAT</dt>
-          <dd>{s.reel_format}</dd>
+          <dd data-slot="format">{active && active.format}</dd>
         </div>
         <div>
           <dt>YEARS</dt>
-          <dd>{s.reel_years}</dd>
+          <dd data-slot="years">{active && active.years}</dd>
         </div>
         <div>
           <dt>STATUS</dt>
-          <dd class="is-status">● {s.reel_status}</dd>
+          <dd class="is-status" data-slot="status">
+            {active && active.status != "" && "● #{active.status}"}
+          </dd>
         </div>
       </dl>
     </div>
 
     <div class="ep-hero__reel">
-      <%!-- The textured layers sit behind the reel and show through when no
-           reel URL is set (edit it under Site copy → Hero & reel). --%>
       <div class="ep-reel__texture"></div>
       <div class="ep-reel__glow"></div>
       <div class="ep-reel__grain"></div>
-      <%= case reel_source(s.reel_video_url) do %>
-        <% {:youtube, id} -> %>
-          <div class="ep-reel__embed">
-            <iframe
-              src={youtube_embed_url(id)}
-              title="Highlight reel"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              referrerpolicy="strict-origin-when-cross-origin"
-            >
-            </iframe>
-          </div>
-        <% {:vimeo, id} -> %>
-          <div class="ep-reel__embed">
-            <iframe
-              src={vimeo_embed_url(id)}
-              title="Highlight reel"
-              allow="autoplay; picture-in-picture"
-            >
-            </iframe>
-          </div>
-        <% {:file, url} -> %>
-          <video
-            class="ep-reel__media"
-            autoplay
-            muted
-            loop
-            playsinline
-            poster={s.reel_poster_url != "" && s.reel_poster_url}
-          >
-            <source src={url} type="video/mp4" />
-          </video>
-        <% :none -> %>
-          <div class="ep-reel__placeholder">DROP 1920×1080 .MP4</div>
-      <% end %>
+
+      <%!-- Initial player: the first clip, muted. JS swaps this on click / unmute. --%>
+      <div id="reel-player" class="ep-reel__embed">
+        <%= case active_player do %>
+          <% %{kind: "youtube", muted: src} -> %>
+            <iframe src={src} title="Reel" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+          <% %{kind: "vimeo", muted: src} -> %>
+            <iframe src={src} title="Reel" allow="autoplay; picture-in-picture"></iframe>
+          <% %{kind: "file", muted: src} -> %>
+            <video class="ep-reel__media" src={src} autoplay muted loop playsinline></video>
+          <% _ -> %>
+        <% end %>
+      </div>
+      <div :if={!active_player || active_player.kind == "none"} class="ep-reel__placeholder">
+        NO CLIP SET
+      </div>
+
       <div class="ep-reel__scrim"></div>
       <h1 class="ep-reel__title">{s.hero_heading}</h1>
+
+      <button
+        type="button"
+        id="reel-sound"
+        class="ep-reel__sound"
+        aria-pressed="false"
+        hidden={!active_player || active_player.kind == "none"}
+      >
+        <span class="ep-reel__sound-dot" aria-hidden="true"></span>
+        <span class="ep-reel__sound-label">SOUND OFF</span>
+      </button>
     </div>
   </section>
 
   <%!-- ====================================================== FILMSTRIP --%>
-  <section class="ep-filmstrip" aria-label="Selected clips">
-    <div :for={{clip, i} <- Enum.with_index(@data.clips, 1)} class="ep-clip">
+  <section class="ep-filmstrip" aria-label="Clips — click to play">
+    <button
+      :for={{clip, i} <- Enum.with_index(clips, 1)}
+      type="button"
+      class={["ep-clip", i == 1 && "is-active"]}
+      aria-pressed={i == 1}
+      data-index={i}
+      data-kind={clip_player(clip).kind}
+      data-src-muted={clip_player(clip).muted}
+      data-src-unmuted={clip_player(clip).unmuted}
+      data-title={clip.title}
+      data-runtime={clip.runtime}
+      data-format={clip.format}
+      data-years={clip.years}
+      data-status={clip.status}
+    >
+      <img
+        :if={clip.thumbnail_path && clip.thumbnail_path != ""}
+        class="ep-clip__thumb"
+        src={clip.thumbnail_path}
+        alt=""
+      />
       <span class="ep-clip__label">CLIP {pad2(i)} · {String.upcase(clip.title)}</span>
-    </div>
+    </button>
   </section>
 
   <%!-- ========================================================== CRAFT --%>
@@ -145,3 +162,101 @@
   <%!-- ========================================================= FOOTER --%>
   <footer class="ep-footer">{s.footer_text}</footer>
 </main>
+
+<script>
+  (function () {
+    var player = document.getElementById("reel-player");
+    var slate = document.getElementById("reel-slate");
+    var soundBtn = document.getElementById("reel-sound");
+    var clips = Array.prototype.slice.call(document.querySelectorAll(".ep-clip"));
+    if (!player || !clips.length) return;
+
+    var activeEl = null;
+    var muted = true;
+
+    function buildMedia(kind, src) {
+      if (!src) return null;
+      if (kind === "file") {
+        var v = document.createElement("video");
+        v.className = "ep-reel__media";
+        v.src = src;
+        v.autoplay = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.muted = muted;
+        return v;
+      }
+      if (kind === "youtube" || kind === "vimeo") {
+        var f = document.createElement("iframe");
+        f.src = src;
+        f.title = "Reel";
+        f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+        return f;
+      }
+      return null;
+    }
+
+    function render(clip) {
+      var kind = clip.dataset.kind;
+      var src = muted ? clip.dataset.srcMuted : clip.dataset.srcUnmuted;
+      player.innerHTML = "";
+      var el = buildMedia(kind, src);
+      if (el) player.appendChild(el);
+    }
+
+    function updateSlate(clip) {
+      function set(slot, val, dot) {
+        var el = slate && slate.querySelector('[data-slot="' + slot + '"]');
+        if (!el) return;
+        el.textContent = val ? (dot ? "● " + val : val) : "";
+      }
+      set("title", clip.dataset.title, false);
+      set("runtime", clip.dataset.runtime, false);
+      set("format", clip.dataset.format, false);
+      set("years", clip.dataset.years, false);
+      set("status", clip.dataset.status, true);
+    }
+
+    function syncSound() {
+      if (!soundBtn) return;
+      var hasVideo = activeEl && activeEl.dataset.kind !== "none";
+      soundBtn.hidden = !hasVideo;
+      soundBtn.setAttribute("aria-pressed", String(!muted));
+      var label = soundBtn.querySelector(".ep-reel__sound-label");
+      if (label) label.textContent = muted ? "SOUND OFF" : "SOUND ON";
+      soundBtn.classList.toggle("is-on", !muted);
+    }
+
+    function activate(clip, opts) {
+      opts = opts || {};
+      if (opts.resetMute) muted = true;
+      if (activeEl) {
+        activeEl.classList.remove("is-active");
+        activeEl.setAttribute("aria-pressed", "false");
+      }
+      activeEl = clip;
+      clip.classList.add("is-active");
+      clip.setAttribute("aria-pressed", "true");
+      updateSlate(clip);
+      if (opts.render) render(clip);
+      syncSound();
+    }
+
+    clips.forEach(function (clip) {
+      clip.addEventListener("click", function () {
+        activate(clip, { render: true, resetMute: true });
+      });
+    });
+
+    if (soundBtn) {
+      soundBtn.addEventListener("click", function () {
+        muted = !muted;
+        if (activeEl) render(activeEl);
+        syncSound();
+      });
+    }
+
+    // First clip is active and already server-rendered muted; just sync state.
+    activate(clips[0], { render: false, resetMute: true });
+  })();
+</script>

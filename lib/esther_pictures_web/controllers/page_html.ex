@@ -34,12 +34,37 @@ defmodule EstherPicturesWeb.PageHTML do
     end
   end
 
-  @doc "Chrome-less, muted, looping background embed URL for a YouTube id."
-  def youtube_embed_url(id) do
+  @doc """
+  Player descriptor for a clip, used to fill the filmstrip's data-* attributes:
+
+      %{kind: "youtube" | "vimeo" | "file" | "none",
+        muted: "<src>", unmuted: "<src>"}
+
+  `muted`/`unmuted` are the chrome-less embed URLs (or the file URL) for each
+  audio state; the frontend swaps between them.
+  """
+  def clip_player(clip) do
+    case reel_source(clip.video_url) do
+      {:youtube, id} ->
+        %{kind: "youtube", muted: youtube_embed_url(id, true), unmuted: youtube_embed_url(id, false)}
+
+      {:vimeo, id} ->
+        %{kind: "vimeo", muted: vimeo_embed_url(id, true), unmuted: vimeo_embed_url(id, false)}
+
+      {:file, url} ->
+        %{kind: "file", muted: url, unmuted: url}
+
+      :none ->
+        %{kind: "none", muted: "", unmuted: ""}
+    end
+  end
+
+  @doc "Chrome-less, looping embed URL for a YouTube id (muted or not)."
+  def youtube_embed_url(id, muted?) do
     params =
       URI.encode_query(%{
         "autoplay" => 1,
-        "mute" => 1,
+        "mute" => (muted? && 1) || 0,
         "loop" => 1,
         "playlist" => id,
         "controls" => 0,
@@ -54,10 +79,22 @@ defmodule EstherPicturesWeb.PageHTML do
     "https://www.youtube-nocookie.com/embed/#{id}?#{params}"
   end
 
-  @doc "Chrome-less background embed URL for a Vimeo id."
-  def vimeo_embed_url(id) do
-    "https://player.vimeo.com/video/#{id}?" <>
-      URI.encode_query(%{"background" => 1, "autoplay" => 1, "loop" => 1, "muted" => 1})
+  @doc "Chrome-less, looping embed URL for a Vimeo id (muted or not)."
+  def vimeo_embed_url(id, muted?) do
+    base = %{
+      "autoplay" => 1,
+      "loop" => 1,
+      "muted" => (muted? && 1) || 0,
+      "controls" => 0,
+      "title" => 0,
+      "byline" => 0,
+      "portrait" => 0
+    }
+
+    # `background=1` gives the cleanest chrome-less look but forces muting, so it
+    # only applies to the muted state.
+    params = if muted?, do: Map.put(base, "background", 1), else: base
+    "https://player.vimeo.com/video/#{id}?#{URI.encode_query(params)}"
   end
 
   defp youtube_id(url) do

@@ -17,15 +17,6 @@ settings = Content.get_site_settings()
     collective_name: "ESTHER PICTURES",
     tagline: "AN INDEPENDENT FILM COLLECTIVE — NY / LA",
     hero_heading: "Films that trust\nthe audience.",
-    reel_title: "Highlight Reel",
-    reel_runtime: "02:38:11",
-    reel_format: "2.39 : 1 · DCP",
-    reel_years: "2021 — 2026",
-    reel_status: "AUTOPLAYING",
-    # Local placeholder reel (priv/static/media, git-ignored). Swap for a hosted
-    # URL in the admin under Site copy → Hero & reel.
-    reel_video_url: "/media/fake-reel.mp4",
-    reel_poster_url: "",
     contact_heading: "Let's make\nsomething.",
     email: "hello@estherpictures.com",
     studio_locations: "New York · Los Angeles",
@@ -52,15 +43,26 @@ for {position, title, description} <- craft do
   {:ok, _} = Content.create_craft_service(%{position: position, title: title, description: description})
 end
 
+# Clip 01 is seeded with a sample video so the hero plays on first load; the
+# rest start empty (add videos + upload thumbnails in the admin).
 clips = [
-  {1, "The Quiet Coast"},
-  {2, "Nightshift"},
-  {3, "Salt"},
-  {4, "A Long Winter"}
+  {1, "The Quiet Coast", "https://www.youtube.com/watch?v=bFcu0Rn1d7w", "04:12", "2.39 : 1 · DCP", "2023", "NOW PLAYING"},
+  {2, "Nightshift", "", "03:48", "1.85 : 1", "2022", "SELECTED"},
+  {3, "Salt", "", "02:31", "2.39 : 1", "2024", "SELECTED"},
+  {4, "A Long Winter", "", "05:07", "1.66 : 1", "2021", "SELECTED"}
 ]
 
-for {position, title} <- clips do
-  {:ok, _} = Content.create_clip(%{position: position, title: title})
+for {position, title, video_url, runtime, format, years, status} <- clips do
+  {:ok, _} =
+    Content.create_clip(%{
+      position: position,
+      title: title,
+      video_url: video_url,
+      runtime: runtime,
+      format: format,
+      years: years,
+      status: status
+    })
 end
 
 ensemble = [

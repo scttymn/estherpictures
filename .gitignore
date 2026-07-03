@@ -45,3 +45,8 @@ npm-debug.log
 /priv/static/media/*.mp4
 /priv/static/media/*.mov
 /priv/static/media/*.webm
+
+# User-uploaded files (clip thumbnails, etc.) — served from priv/static/uploads
+# but not committed; on deploy these belong on a persistent volume.
+/priv/static/uploads/**/*
+!/priv/static/uploads/.gitkeep

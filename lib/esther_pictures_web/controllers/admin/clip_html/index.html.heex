@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
     Clips
-    <:subtitle>The hero filmstrip. Ordered by position.</:subtitle>
+    <:subtitle>The hero reel player. Clip 01 auto-plays; visitors can click others.</:subtitle>
     <:actions>
       <.link href={~p"/admin/clips/new"} class="btn btn-primary btn-sm">Add clip</.link>
     </:actions>
@@ -12,14 +12,31 @@
       <thead>
         <tr>
           <th>#</th>
+          <th>Thumbnail</th>
           <th>Title</th>
+          <th>Video</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <tr :for={c <- @clips}>
           <td class="font-mono opacity-60">{c.position}</td>
+          <td>
+            <img
+              :if={c.thumbnail_path && c.thumbnail_path != ""}
+              src={c.thumbnail_path}
+              alt=""
+              class="h-12 w-20 object-cover rounded border border-base-300"
+            />
+            <span :if={!c.thumbnail_path || c.thumbnail_path == ""} class="text-xs opacity-50">
+              none
+            </span>
+          </td>
           <td class="font-semibold">{c.title}</td>
+          <td class="text-sm">
+            <span :if={c.video_url && c.video_url != ""} class="opacity-70">set</span>
+            <span :if={!c.video_url || c.video_url == ""} class="opacity-50">—</span>
+          </td>
           <td class="text-right whitespace-nowrap">
             <.link href={~p"/admin/clips/#{c}/edit"} class="btn btn-ghost btn-xs">Edit</.link>
             <.link
@@ -33,7 +50,7 @@
           </td>
         </tr>
         <tr :if={@clips == []}>
-          <td colspan="3" class="text-center opacity-60 py-8">No clips yet.</td>
+          <td colspan="5" class="text-center opacity-60 py-8">No clips yet.</td>
         </tr>
       </tbody>
     </table>
