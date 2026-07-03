@@ -15,6 +15,9 @@ defmodule EstherPicturesWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  # Redirect www.* to the bare apex host (canonical URL) before anything else.
+  plug EstherPicturesWeb.Plugs.CanonicalHost
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),
