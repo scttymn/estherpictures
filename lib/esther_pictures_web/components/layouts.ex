@@ -74,6 +74,37 @@ defmodule EstherPicturesWeb.Layouts do
   end
 
   @doc """
+  Minimal chrome for authentication pages (log in, first-run setup, forced
+  password change). Deliberately does NOT render the admin navigation — those
+  pages must not expose or imply admin access.
+  """
+  attr :flash, :map, required: true
+
+  attr :current_scope, :map,
+    default: nil,
+    doc: "accepted for call-site symmetry; unused here"
+
+  slot :inner_block, required: true
+
+  def auth(assigns) do
+    ~H"""
+    <header class="border-b border-base-300">
+      <div class="mx-auto max-w-5xl px-4 sm:px-6 h-16 flex items-center">
+        <a href={~p"/"} class="font-black tracking-tight text-lg">
+          ESTHER PICTURES <span class="font-normal text-base-content/50 text-sm">· ADMIN</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-md px-4 sm:px-6 py-16">
+      {render_slot(@inner_block)}
+    </main>
+
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples
