@@ -1,17 +1,18 @@
-# Push-to-main deploy: builds a mix release in the builder image, ships the
-# tarball to the app VM, migrates, and restarts the systemd unit.
+# Push-to-main deploy: builds a mix release, ships the tarball to the app VM,
+# migrates, and restarts the systemd unit.
+#
+# The container is the public hexpm/elixir image on Debian BOOKWORM — its
+# OpenSSL 3.0 / glibc match the Ubuntu 24.04 app VM, so the compiled crypto /
+# bcrypt / exqlite NIFs load at runtime. (Do NOT switch to a trixie/OpenSSL-3.4
+# image, or the release crashes on the VM with `OPENSSL_3.4.0 not found`.)
+# Build tooling (git, ssh, node, build-essential, hex/rebar) is installed in the
+# first step. deploy/Dockerfile.builder can bake all this into a registry image
+# later for faster runs.
 #
 # Forgejo repo secrets required:
-#   DEPLOY_SSH_KEY  — private key (ed25519) authorized for the deploy user
-#   DEPLOY_HOST     — app VM LAN IP (e.g. 192.168.0.54)
+#   DEPLOY_SSH_KEY  — private key authorized for the deploy user
+#   DEPLOY_HOST     — app VM LAN IP (192.168.0.54)
 #   DEPLOY_USER     — "deploy"
-#
-# App VM prereqs: run deploy/setup-app-vm.sh once, set SECRET_KEY_BASE in
-# /etc/esther_pictures.env, and point cloudflared at 127.0.0.1:4000.
-#
-# Builder image: reuses the rideclub website-builder (identical Elixir/OTP).
-# If the runner can't pull it, build & push deploy/Dockerfile.builder to
-# git.svnmns.com/estherpictures/builder:latest and swap the image below.
 
 name: deploy
 
@@ -23,12 +24,22 @@ jobs:
   deploy:
     runs-on: docker
     container:
-      image: git.svnmns.com/rideclub/website-builder:latest
+      image: hexpm/elixir:1.19.5-erlang-28.1.1-debian-bookworm-20260623-slim
     env:
       MIX_ENV: prod
       RELEASE_SHA: ${{ github.sha }}
 
     steps:
+      - name: Install build tooling
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates curl git openssh-client tar gzip build-essential gnupg
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y --no-install-recommends nodejs
+          mix local.hex --force
+          mix local.rebar --force
+
       - name: Checkout
         uses: actions/checkout@v4
 
