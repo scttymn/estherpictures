@@ -39,8 +39,11 @@ defmodule EstherPicturesWeb.Layouts do
 
     ~H"""
     <header class="border-b border-base-300">
-      <div class="mx-auto max-w-5xl px-4 sm:px-6 flex items-center gap-6 h-16">
-        <a href={if @user, do: ~p"/admin", else: ~p"/"} class="font-black tracking-tight text-lg">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-4 h-16">
+        <a
+          href={if @user, do: ~p"/admin", else: ~p"/"}
+          class="font-black tracking-tight text-lg whitespace-nowrap shrink-0"
+        >
           ESTHER PICTURES <span class="font-normal text-base-content/50 text-sm">· ADMIN</span>
         </a>
 
@@ -53,11 +56,15 @@ defmodule EstherPicturesWeb.Layouts do
           <.link :if={@is_admin} navigate={~p"/admin/users"} class="btn btn-ghost btn-sm">Users</.link>
         </nav>
 
-        <div class="ml-auto flex items-center gap-3 text-sm">
-          <a href={~p"/"} class="link link-hover opacity-70">View site ↗</a>
+        <div class="ml-auto flex items-center gap-3 text-sm shrink-0">
+          <a href={~p"/"} class="link link-hover opacity-70 whitespace-nowrap">View site ↗</a>
           <%= if @user do %>
-            <span class="hidden sm:inline opacity-60">{@user.email}</span>
-            <.link href={~p"/users/log-out"} method="delete" class="btn btn-ghost btn-sm">
+            <span class="hidden lg:inline opacity-60 whitespace-nowrap">{@user.email}</span>
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="btn btn-ghost btn-sm whitespace-nowrap"
+            >
               Log out
             </.link>
           <% end %>
