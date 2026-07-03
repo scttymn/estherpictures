@@ -33,6 +33,6 @@ defmodule EstherPicturesWeb.UserRegistrationController do
   defp registration_closed(conn) do
     conn
     |> put_flash(:error, "Registration is closed. Please log in.")
-    |> redirect(to: ~p"/users/log-in")
+    |> redirect(to: ~p"/login")
   end
 end

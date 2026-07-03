@@ -5,7 +5,7 @@
       <:subtitle>Editor & administrator access to Esther Pictures.</:subtitle>
     </.header>
 
-    <.form :let={f} for={@form} as={:user} id="login_form" action={~p"/users/log-in"}>
+    <.form :let={f} for={@form} as={:user} id="login_form" action={~p"/login"}>
       <.input
         field={f[:email]}
         type="email"

@@ -59,8 +59,8 @@ defmodule EstherPicturesWeb.Router do
   scope "/", EstherPicturesWeb do
     pipe_through [:browser]
 
-    get "/users/log-in", UserSessionController, :new
-    post "/users/log-in", UserSessionController, :create
+    get "/login", UserSessionController, :new
+    post "/login", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
   end
 
