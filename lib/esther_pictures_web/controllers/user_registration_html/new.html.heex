@@ -1,0 +1,37 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="mx-auto max-w-sm space-y-6">
+    <.header>
+      Set up the site administrator
+      <:subtitle>
+        This is a one-time step. The first account becomes the administrator, then
+        registration closes and further editors are added from inside the admin.
+      </:subtitle>
+    </.header>
+
+    <.form :let={f} for={@changeset} as={:user} action={~p"/users/register"} id="registration_form">
+      <.input field={f[:email]} type="email" label="Email" autocomplete="username" required />
+      <.input
+        field={f[:password]}
+        type="password"
+        label="Password (min 12 characters)"
+        autocomplete="new-password"
+        required
+      />
+      <.input
+        field={f[:password_confirmation]}
+        type="password"
+        label="Confirm password"
+        autocomplete="new-password"
+        required
+      />
+      <.button phx-disable-with="Creating account..." class="btn btn-primary w-full mt-2">
+        Create administrator account <span aria-hidden="true">→</span>
+      </.button>
+    </.form>
+
+    <p class="text-center text-sm">
+      Already set up?
+      <.link navigate={~p"/users/log-in"} class="font-semibold hover:underline">Log in</.link>
+    </p>
+  </div>
+</Layouts.app>

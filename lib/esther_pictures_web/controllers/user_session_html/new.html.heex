@@ -1,0 +1,30 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="mx-auto max-w-sm space-y-6">
+    <.header>
+      Log in
+      <:subtitle>Editor & administrator access to Esther Pictures.</:subtitle>
+    </.header>
+
+    <.form :let={f} for={@form} as={:user} id="login_form" action={~p"/users/log-in"}>
+      <.input
+        field={f[:email]}
+        type="email"
+        label="Email"
+        autocomplete="username"
+        required
+        phx-mounted={JS.focus()}
+      />
+      <.input
+        field={f[:password]}
+        type="password"
+        label="Password"
+        autocomplete="current-password"
+        required
+      />
+      <.input field={f[:remember_me]} type="checkbox" label="Keep me logged in" />
+      <.button class="btn btn-primary w-full mt-2">
+        Log in <span aria-hidden="true">→</span>
+      </.button>
+    </.form>
+  </div>
+</Layouts.app>

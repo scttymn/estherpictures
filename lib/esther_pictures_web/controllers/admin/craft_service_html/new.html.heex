@@ -1,0 +1,6 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>Add craft service</.header>
+  <div class="mt-8">
+    <.service_form changeset={@changeset} action={~p"/admin/craft"} submit_label="Add service" />
+  </div>
+</Layouts.app>

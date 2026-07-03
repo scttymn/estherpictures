@@ -1,0 +1,42 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Welcome, {@current_scope.user.email}
+    <:subtitle>Edit everything that appears on the public site from here.</:subtitle>
+  </.header>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-8">
+    <.link navigate={~p"/admin/settings"} class="card bg-base-200 hover:bg-base-300 transition p-6 block">
+      <h3 class="font-semibold text-lg">Site copy</h3>
+      <p class="text-sm opacity-70 mt-1">Hero, tagline, reel details, contact & footer.</p>
+    </.link>
+
+    <.link navigate={~p"/admin/craft"} class="card bg-base-200 hover:bg-base-300 transition p-6 block">
+      <h3 class="font-semibold text-lg">Craft <span class="badge badge-neutral">{@craft_count}</span></h3>
+      <p class="text-sm opacity-70 mt-1">The "what we do" services grid.</p>
+    </.link>
+
+    <.link navigate={~p"/admin/clips"} class="card bg-base-200 hover:bg-base-300 transition p-6 block">
+      <h3 class="font-semibold text-lg">Clips <span class="badge badge-neutral">{@clip_count}</span></h3>
+      <p class="text-sm opacity-70 mt-1">The hero filmstrip.</p>
+    </.link>
+
+    <.link navigate={~p"/admin/ensemble"} class="card bg-base-200 hover:bg-base-300 transition p-6 block">
+      <h3 class="font-semibold text-lg">Ensemble <span class="badge badge-neutral">{@ensemble_count}</span></h3>
+      <p class="text-sm opacity-70 mt-1">The roster of people.</p>
+    </.link>
+
+    <.link
+      :if={@current_scope.user.role == "admin"}
+      navigate={~p"/admin/users"}
+      class="card bg-base-200 hover:bg-base-300 transition p-6 block"
+    >
+      <h3 class="font-semibold text-lg">Users</h3>
+      <p class="text-sm opacity-70 mt-1">Invite editors and manage access.</p>
+    </.link>
+
+    <.link href={~p"/"} class="card bg-base-200 hover:bg-base-300 transition p-6 block">
+      <h3 class="font-semibold text-lg">View site ↗</h3>
+      <p class="text-sm opacity-70 mt-1">See the live public homepage.</p>
+    </.link>
+  </div>
+</Layouts.app>

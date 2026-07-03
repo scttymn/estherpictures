@@ -1,0 +1,41 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Clips
+    <:subtitle>The hero filmstrip. Ordered by position.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/clips/new"} class="btn btn-primary btn-sm">Add clip</.link>
+    </:actions>
+  </.header>
+
+  <div class="mt-8 overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={c <- @clips}>
+          <td class="font-mono opacity-60">{c.position}</td>
+          <td class="font-semibold">{c.title}</td>
+          <td class="text-right whitespace-nowrap">
+            <.link href={~p"/admin/clips/#{c}/edit"} class="btn btn-ghost btn-xs">Edit</.link>
+            <.link
+              href={~p"/admin/clips/#{c}"}
+              method="delete"
+              data-confirm={"Delete “#{c.title}”?"}
+              class="btn btn-ghost btn-xs text-error"
+            >
+              Delete
+            </.link>
+          </td>
+        </tr>
+        <tr :if={@clips == []}>
+          <td colspan="3" class="text-center opacity-60 py-8">No clips yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.app>

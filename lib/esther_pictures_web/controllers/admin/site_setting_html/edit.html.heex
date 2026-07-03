@@ -1,0 +1,43 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Site copy
+    <:subtitle>All one-off text on the homepage. Multi-line fields keep their line breaks.</:subtitle>
+  </.header>
+
+  <.form :let={f} for={@changeset} as={:site_setting} action={~p"/admin/settings"} method="put" class="mt-8 space-y-10">
+    <section class="space-y-4">
+      <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Header</h3>
+      <.input field={f[:collective_name]} label="Collective name (nav / brand)" required />
+      <.input field={f[:tagline]} label="Nav tagline" />
+    </section>
+
+    <section class="space-y-4">
+      <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Hero & reel</h3>
+      <.input field={f[:hero_heading]} type="textarea" label="Hero heading (press Enter for line breaks)" />
+      <div class="grid sm:grid-cols-2 gap-4">
+        <.input field={f[:reel_title]} label="Reel title" />
+        <.input field={f[:reel_runtime]} label="Reel runtime" />
+        <.input field={f[:reel_format]} label="Reel format" />
+        <.input field={f[:reel_years]} label="Reel years" />
+        <.input field={f[:reel_status]} label="Reel status" />
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Contact & footer</h3>
+      <.input field={f[:contact_heading]} type="textarea" label="Contact heading (press Enter for line breaks)" />
+      <div class="grid sm:grid-cols-2 gap-4">
+        <.input field={f[:email]} label="Email" />
+        <.input field={f[:studio_locations]} label="Studio locations" />
+        <.input field={f[:instagram_url]} label="Instagram URL" />
+        <.input field={f[:letterboxd_url]} label="Letterboxd URL" />
+      </div>
+      <.input field={f[:footer_text]} label="Footer text" />
+    </section>
+
+    <div class="flex gap-3">
+      <.button class="btn btn-primary">Save changes</.button>
+      <.link href={~p"/admin"} class="btn btn-ghost">Cancel</.link>
+    </div>
+  </.form>
+</Layouts.app>

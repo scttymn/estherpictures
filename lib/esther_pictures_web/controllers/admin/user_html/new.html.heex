@@ -1,0 +1,26 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Invite editor
+    <:subtitle>
+      A temporary password is generated automatically. You'll see it once after
+      creating the account — copy it and email it to the new editor.
+    </:subtitle>
+  </.header>
+
+  <div class="mt-8">
+    <.form :let={f} for={@changeset} as={:user} action={~p"/admin/users"} class="space-y-4 max-w-lg">
+      <.input field={f[:email]} type="email" label="Email" autocomplete="off" required />
+      <.input
+        field={f[:role]}
+        type="select"
+        label="Role"
+        options={[{"Editor", "editor"}, {"Administrator", "admin"}]}
+        value={Phoenix.HTML.Form.input_value(f, :role) || "editor"}
+      />
+      <div class="flex gap-3">
+        <.button class="btn btn-primary">Create account</.button>
+        <.link href={~p"/admin/users"} class="btn btn-ghost">Cancel</.link>
+      </div>
+    </.form>
+  </div>
+</Layouts.app>

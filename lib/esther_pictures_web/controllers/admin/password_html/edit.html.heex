@@ -1,0 +1,29 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="mx-auto max-w-sm space-y-6">
+    <.header>
+      {if @forced, do: "Choose a new password", else: "Change your password"}
+      <:subtitle :if={@forced}>
+        Your account was created with a temporary password. Please set your own to continue.
+      </:subtitle>
+    </.header>
+
+    <.form :let={f} for={@changeset} as={:user} action={~p"/admin/change-password"} method="put">
+      <.input
+        field={f[:password]}
+        type="password"
+        label="New password (min 12 characters)"
+        autocomplete="new-password"
+        required
+        phx-mounted={JS.focus()}
+      />
+      <.input
+        field={f[:password_confirmation]}
+        type="password"
+        label="Confirm new password"
+        autocomplete="new-password"
+        required
+      />
+      <.button class="btn btn-primary w-full mt-2">Save password <span aria-hidden="true">→</span></.button>
+    </.form>
+  </div>
+</Layouts.app>

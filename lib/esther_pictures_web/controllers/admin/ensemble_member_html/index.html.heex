@@ -1,0 +1,45 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Ensemble
+    <:subtitle>The roster of people. Ordered by position.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/ensemble/new"} class="btn btn-primary btn-sm">Add member</.link>
+    </:actions>
+  </.header>
+
+  <div class="mt-8 overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Since</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={m <- @members}>
+          <td class="font-mono opacity-60">{m.position}</td>
+          <td class="font-semibold">{m.name}</td>
+          <td class="opacity-70">{m.role}</td>
+          <td class="opacity-70">{m.since_year}</td>
+          <td class="text-right whitespace-nowrap">
+            <.link href={~p"/admin/ensemble/#{m}/edit"} class="btn btn-ghost btn-xs">Edit</.link>
+            <.link
+              href={~p"/admin/ensemble/#{m}"}
+              method="delete"
+              data-confirm={"Delete “#{m.name}”?"}
+              class="btn btn-ghost btn-xs text-error"
+            >
+              Delete
+            </.link>
+          </td>
+        </tr>
+        <tr :if={@members == []}>
+          <td colspan="5" class="text-center opacity-60 py-8">No members yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.app>

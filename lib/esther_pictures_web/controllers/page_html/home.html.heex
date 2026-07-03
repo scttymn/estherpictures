@@ -1,0 +1,121 @@
+<% s = @data.settings %>
+<main class="ep">
+  <%!-- ============================================================ NAV --%>
+  <nav class="ep-nav" aria-label="Primary">
+    <div class="ep-nav__brand"><span>{s.collective_name}</span></div>
+    <div class="ep-nav__tag">{s.tagline}</div>
+    <div class="ep-nav__links">
+      <a href="#reel">01 REEL</a>
+      <a href="#craft">02 CRAFT</a>
+      <a href="#ensemble">03 ENSEMBLE</a>
+      <a href="#contact">04 CONTACT</a>
+    </div>
+  </nav>
+
+  <%!-- =========================================================== HERO --%>
+  <section class="ep-hero" id="reel">
+    <div class="ep-hero__slate">
+      <div class="ep-hero__slate-title">REEL SLATE</div>
+      <dl class="ep-slate-list">
+        <div>
+          <dt>TITLE</dt>
+          <dd class="is-title">{s.reel_title}</dd>
+        </div>
+        <div>
+          <dt>RUNTIME</dt>
+          <dd>{s.reel_runtime}</dd>
+        </div>
+        <div>
+          <dt>FORMAT</dt>
+          <dd>{s.reel_format}</dd>
+        </div>
+        <div>
+          <dt>YEARS</dt>
+          <dd>{s.reel_years}</dd>
+        </div>
+        <div>
+          <dt>STATUS</dt>
+          <dd class="is-status">● {s.reel_status}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="ep-hero__reel">
+      <%!-- To use a real reel, add inside this div:
+           <video class="ep-reel__media" autoplay muted loop playsinline poster="…">
+             <source src="…" type="video/mp4" />
+           </video> --%>
+      <div class="ep-reel__texture"></div>
+      <div class="ep-reel__glow"></div>
+      <div class="ep-reel__grain"></div>
+      <div class="ep-reel__placeholder">DROP 1920×1080 .MP4</div>
+      <div class="ep-reel__scrim"></div>
+      <h1 class="ep-reel__title">{s.hero_heading}</h1>
+      <div class="ep-reel__bar">
+        <span>00:41</span>
+        <div class="ep-track"><span></span></div>
+        <span class="is-dim">MUTED ◼</span>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ====================================================== FILMSTRIP --%>
+  <section class="ep-filmstrip" aria-label="Selected clips">
+    <div :for={{clip, i} <- Enum.with_index(@data.clips, 1)} class="ep-clip">
+      <span class="ep-clip__label">CLIP {pad2(i)} · {String.upcase(clip.title)}</span>
+    </div>
+  </section>
+
+  <%!-- ========================================================== CRAFT --%>
+  <section class="ep-craft" id="craft">
+    <div class="ep-strip">02 — WHAT WE DO</div>
+    <div class="ep-craft__grid">
+      <div :for={{svc, i} <- Enum.with_index(@data.craft, 1)} class="ep-craft__cell">
+        <div class="ep-craft__num">{pad2(i)}</div>
+        <h3 class="ep-craft__title">{svc.title}</h3>
+        <p class="ep-craft__desc">{svc.description}</p>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ======================================================= ENSEMBLE --%>
+  <section class="ep-ensemble" id="ensemble">
+    <div class="ep-strip">03 — ENSEMBLE</div>
+    <div :for={{m, i} <- Enum.with_index(@data.ensemble, 1)} class="ep-member">
+      <span class="ep-member__code">{member_code(i)}</span>
+      <span class="ep-member__name">{m.name}</span>
+      <span class="ep-member__role">{m.role}</span>
+      <span class="ep-member__since">SINCE {m.since_year}</span>
+    </div>
+  </section>
+
+  <%!-- ======================================================== CONTACT --%>
+  <section class="ep-contact" id="contact">
+    <div class="ep-contact__main">
+      <div class="ep-contact__label">04 — CONTACT</div>
+      <h2 class="ep-contact__heading">{s.contact_heading}</h2>
+      <a class="ep-btn" href={"mailto:#{s.email}"}>Start a conversation →</a>
+    </div>
+    <div class="ep-contact__aside">
+      <dl>
+        <div>
+          <dt>EMAIL</dt>
+          <dd><a href={"mailto:#{s.email}"}>{s.email}</a></dd>
+        </div>
+        <div>
+          <dt>STUDIO</dt>
+          <dd>{s.studio_locations}</dd>
+        </div>
+        <div>
+          <dt>FOLLOW</dt>
+          <dd>
+            <a href={s.instagram_url}>Instagram ↗</a> · <a href={s.letterboxd_url}>Letterboxd ↗</a>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <%!-- ========================================================= FOOTER --%>
+  <footer class="ep-footer">{s.footer_text}</footer>
+</main>

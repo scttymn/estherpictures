@@ -1,0 +1,49 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Users
+    <:subtitle>Editors and administrators with access to this admin.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/users/new"} class="btn btn-primary btn-sm">Invite editor</.link>
+    </:actions>
+  </.header>
+
+  <div class="mt-8 overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={u <- @users}>
+          <td class="font-semibold">
+            {u.email}
+            <span :if={u.id == @current_user.id} class="badge badge-ghost badge-sm ml-1">you</span>
+          </td>
+          <td>
+            <span class={["badge badge-sm", u.role == "admin" && "badge-primary" || "badge-ghost"]}>
+              {u.role}
+            </span>
+          </td>
+          <td class="opacity-70">
+            {if u.must_change_password, do: "Pending first login", else: "Active"}
+          </td>
+          <td class="text-right">
+            <.link
+              :if={u.id != @current_user.id}
+              href={~p"/admin/users/#{u}"}
+              method="delete"
+              data-confirm={"Remove #{u.email}? This can't be undone."}
+              class="btn btn-ghost btn-xs text-error"
+            >
+              Remove
+            </.link>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.app>

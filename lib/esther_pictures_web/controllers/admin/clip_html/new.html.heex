@@ -1,0 +1,6 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>Add clip</.header>
+  <div class="mt-8">
+    <.clip_form changeset={@changeset} action={~p"/admin/clips"} submit_label="Add clip" />
+  </div>
+</Layouts.app>

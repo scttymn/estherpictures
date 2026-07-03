@@ -1,0 +1,11 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>Edit ensemble member</.header>
+  <div class="mt-8">
+    <.member_form
+      changeset={@changeset}
+      action={~p"/admin/ensemble/#{@member}"}
+      method="put"
+      submit_label="Save changes"
+    />
+  </div>
+</Layouts.app>

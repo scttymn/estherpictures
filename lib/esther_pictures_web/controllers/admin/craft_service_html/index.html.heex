@@ -1,0 +1,43 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Craft services
+    <:subtitle>The "what we do" grid. Ordered by position.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/craft/new"} class="btn btn-primary btn-sm">Add service</.link>
+    </:actions>
+  </.header>
+
+  <div class="mt-8 overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={s <- @services}>
+          <td class="font-mono opacity-60">{s.position}</td>
+          <td class="font-semibold">{s.title}</td>
+          <td class="opacity-70 max-w-md truncate">{s.description}</td>
+          <td class="text-right whitespace-nowrap">
+            <.link href={~p"/admin/craft/#{s}/edit"} class="btn btn-ghost btn-xs">Edit</.link>
+            <.link
+              href={~p"/admin/craft/#{s}"}
+              method="delete"
+              data-confirm={"Delete “#{s.title}”?"}
+              class="btn btn-ghost btn-xs text-error"
+            >
+              Delete
+            </.link>
+          </td>
+        </tr>
+        <tr :if={@services == []}>
+          <td colspan="4" class="text-center opacity-60 py-8">No services yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.app>
