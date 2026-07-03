@@ -193,6 +193,27 @@ a {
   z-index: 1;
 }
 
+/* Embedded YouTube / Vimeo background reel. Fills the frame with a true
+   "cover" (no letterbox) using container-query units, and is non-interactive
+   so it reads as a silent background rather than a video player. */
+.ep-reel__embed {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+}
+.ep-reel__embed iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  width: max(100cqw, calc(100cqh * 16 / 9));
+  height: max(100cqh, calc(100cqw * 9 / 16));
+}
+
 .ep-reel__texture {
   position: absolute;
   inset: 0;

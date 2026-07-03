@@ -21,6 +21,15 @@
         <.input field={f[:reel_years]} label="Reel years" />
         <.input field={f[:reel_status]} label="Reel status" />
       </div>
+      <.input
+        field={f[:reel_video_url]}
+        label="Reel video URL — YouTube, Vimeo, or a direct .mp4 (blank shows the placeholder)"
+      />
+      <p class="text-sm opacity-60 -mt-2">
+        Plays muted, looping, and chrome-less as a background reel. Poster only
+        applies to direct video files.
+      </p>
+      <.input field={f[:reel_poster_url]} label="Reel poster image URL (optional, direct files only)" />
     </section>
 
     <section class="space-y-4">

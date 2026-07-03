@@ -51,23 +51,27 @@ Everything on the homepage is editable from `/admin` — no code, no redeploy:
 
 The `01–04`, `CLIP 0X`, and `A1/A2` labels are derived automatically from order.
 
-## Adding the real hero reel
+## The hero reel
 
-The hero currently shows a styled placeholder. To use a real video, drop a
-`<video>` into the hero reel container in
-`lib/esther_pictures_web/controllers/page_html/home.html.heex`:
+The reel is set from the admin under **Site copy → Hero & reel** in the
+**Reel video URL** field — no code needed. It auto-detects what you paste and
+always plays **muted, looping, and chrome-less** as a background reel:
 
-```heex
-<div class="ep-hero__reel">
-  <video class="ep-reel__media" autoplay muted loop playsinline poster="…">
-    <source src="…" type="video/mp4" />
-  </video>
-  ...
-</div>
-```
+- **YouTube** link (`youtube.com/watch?v=…`, `youtu.be/…`, embed, shorts) →
+  chrome-less `youtube-nocookie` background iframe.
+- **Vimeo** link (`vimeo.com/…`) → Vimeo `background=1` mode (zero chrome).
+- **Direct file** (`.mp4` on a CDN / object storage) → native `<video>`, and the
+  optional **poster** field applies.
+- **Blank** → the styled placeholder texture.
 
-The `.ep-reel__media` style makes it cover the frame; the placeholder texture
-sits behind it.
+Notes:
+- Autoplay requires muting (a browser rule) — which matches the design's
+  "MUTED ◼" reel.
+- On load, YouTube briefly shows a title/spinner; Vimeo's background mode does
+  not — prefer Vimeo (or a direct file) if you want a perfectly clean start.
+- Local placeholder video files live in `priv/static/media/` (git-ignored — see
+  `.gitignore`). For production, host the reel on YouTube/Vimeo or object storage
+  and paste the URL.
 
 ## Project layout
 

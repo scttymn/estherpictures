@@ -39,3 +39,9 @@ npm-debug.log
 *.db
 *.db-*
 
+
+# Reel/media video binaries live in priv/static/media but are not committed to git
+# (they're large and belong in object storage / a CDN for real deployments).
+/priv/static/media/*.mp4
+/priv/static/media/*.mov
+/priv/static/media/*.webm

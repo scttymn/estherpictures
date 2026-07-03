@@ -41,14 +41,45 @@
     </div>
 
     <div class="ep-hero__reel">
-      <%!-- To use a real reel, add inside this div:
-           <video class="ep-reel__media" autoplay muted loop playsinline poster="…">
-             <source src="…" type="video/mp4" />
-           </video> --%>
+      <%!-- The textured layers sit behind the reel and show through when no
+           reel URL is set (edit it under Site copy → Hero & reel). --%>
       <div class="ep-reel__texture"></div>
       <div class="ep-reel__glow"></div>
       <div class="ep-reel__grain"></div>
-      <div class="ep-reel__placeholder">DROP 1920×1080 .MP4</div>
+      <%= case reel_source(s.reel_video_url) do %>
+        <% {:youtube, id} -> %>
+          <div class="ep-reel__embed">
+            <iframe
+              src={youtube_embed_url(id)}
+              title="Highlight reel"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerpolicy="strict-origin-when-cross-origin"
+            >
+            </iframe>
+          </div>
+        <% {:vimeo, id} -> %>
+          <div class="ep-reel__embed">
+            <iframe
+              src={vimeo_embed_url(id)}
+              title="Highlight reel"
+              allow="autoplay; picture-in-picture"
+            >
+            </iframe>
+          </div>
+        <% {:file, url} -> %>
+          <video
+            class="ep-reel__media"
+            autoplay
+            muted
+            loop
+            playsinline
+            poster={s.reel_poster_url != "" && s.reel_poster_url}
+          >
+            <source src={url} type="video/mp4" />
+          </video>
+        <% :none -> %>
+          <div class="ep-reel__placeholder">DROP 1920×1080 .MP4</div>
+      <% end %>
       <div class="ep-reel__scrim"></div>
       <h1 class="ep-reel__title">{s.hero_heading}</h1>
       <div class="ep-reel__bar">

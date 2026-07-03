@@ -15,6 +15,8 @@ defmodule EstherPictures.Content.SiteSetting do
     field :reel_format, :string
     field :reel_years, :string
     field :reel_status, :string
+    field :reel_video_url, :string
+    field :reel_poster_url, :string
 
     field :contact_heading, :string
     field :email, :string
@@ -27,8 +29,9 @@ defmodule EstherPictures.Content.SiteSetting do
   end
 
   @fields ~w(collective_name tagline hero_heading reel_title reel_runtime
-             reel_format reel_years reel_status contact_heading email
-             studio_locations instagram_url letterboxd_url footer_text)a
+             reel_format reel_years reel_status reel_video_url reel_poster_url
+             contact_heading email studio_locations instagram_url letterboxd_url
+             footer_text)a
 
   def changeset(setting, attrs) do
     setting

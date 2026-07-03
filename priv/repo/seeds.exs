@@ -22,6 +22,10 @@ settings = Content.get_site_settings()
     reel_format: "2.39 : 1 · DCP",
     reel_years: "2021 — 2026",
     reel_status: "AUTOPLAYING",
+    # Local placeholder reel (priv/static/media, git-ignored). Swap for a hosted
+    # URL in the admin under Site copy → Hero & reel.
+    reel_video_url: "/media/fake-reel.mp4",
+    reel_poster_url: "",
     contact_heading: "Let's make\nsomething.",
     email: "hello@estherpictures.com",
     studio_locations: "New York · Los Angeles",
