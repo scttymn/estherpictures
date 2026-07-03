@@ -282,27 +282,11 @@ a {
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: flex-end;
   font-family: var(--mono);
   font-size: 11px;
+  letter-spacing: 0.1em;
   color: #cbc7bf;
-}
-
-.ep-reel__bar .ep-track {
-  flex: 1;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.16);
-  position: relative;
-  overflow: hidden;
-}
-
-.ep-reel__bar .ep-track > span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: var(--ink);
-  animation: scrub 14s linear infinite;
 }
 
 .ep-reel__bar .is-dim {
@@ -539,14 +523,8 @@ a {
   60%  { transform: translate(-3%, -3%); }
   80%  { transform: translate(4%, 3%); }
 }
-@keyframes scrub {
-  from { width: 0%; }
-  to   { width: 100%; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ep-reel__grain { animation: none; }
-  .ep-reel__bar .ep-track > span { animation: none; width: 32%; }
 }
 
 /* ========================================================== Responsive ==
