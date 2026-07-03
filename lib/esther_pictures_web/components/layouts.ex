@@ -57,7 +57,14 @@ defmodule EstherPicturesWeb.Layouts do
         </nav>
 
         <div class="ml-auto flex items-center gap-3 text-sm shrink-0">
-          <a href={~p"/"} class="link link-hover opacity-70 whitespace-nowrap">View site ↗</a>
+          <a
+            href={~p"/"}
+            target="_blank"
+            rel="noopener"
+            class="link link-hover opacity-70 whitespace-nowrap"
+          >
+            View site ↗
+          </a>
           <%= if @user do %>
             <span class="hidden lg:inline opacity-60 whitespace-nowrap">{@user.email}</span>
             <.link
