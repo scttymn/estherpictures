@@ -85,6 +85,13 @@ a {
   border-right: 1px solid var(--line);
   display: flex;
   align-items: center;
+  transition: background 0.15s ease;
+}
+
+.ep-nav__brand:hover,
+.ep-nav__brand:focus-visible {
+  background: var(--hover);
+  outline: none;
 }
 
 .ep-nav__brand span {

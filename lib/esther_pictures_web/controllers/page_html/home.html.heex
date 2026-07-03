@@ -5,7 +5,9 @@
 <main class="ep">
   <%!-- ============================================================ NAV --%>
   <nav class="ep-nav" aria-label="Primary">
-    <div class="ep-nav__brand"><span>{s.collective_name}</span></div>
+    <a href="/" class="ep-nav__brand" aria-label={"#{s.collective_name} — home"}>
+      <span>{s.collective_name}</span>
+    </a>
     <div class="ep-nav__tag">{s.tagline}</div>
     <div class="ep-nav__links">
       <a href="#reel">01 REEL</a>
