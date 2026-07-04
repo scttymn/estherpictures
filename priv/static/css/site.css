@@ -146,6 +146,11 @@ a {
   outline: none;
 }
 
+/* Mobile menu toggle — hidden on desktop (nav is always visible there). */
+.ep-nav__toggle {
+  display: none;
+}
+
 /* --------------------------------------------------------------- Hero ---- */
 .ep-hero {
   display: flex;
@@ -656,18 +661,66 @@ a {
   }
   .ep-nav__brand {
     flex: 1 1 auto;
+    height: 64px;
+    padding-top: 0;
+    padding-bottom: 0;
   }
+  /* Chevron toggle: an exact square matching the fixed 64px header height. */
+  .ep-nav__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--line);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .ep-nav__chev {
+    transition: transform 0.2s ease;
+  }
+  .ep-nav.is-open .ep-nav__chev {
+    transform: rotate(180deg);
+  }
+
+  /* Tagline + links collapse by default; the chevron reveals them. */
   .ep-nav__tag {
     order: 3;
     flex: 1 0 100%;
+    display: none;
     border-top: 1px solid var(--line);
     padding: 16px clamp(20px, 4vw, 32px);
   }
+  .ep-nav.is-open .ep-nav__tag {
+    display: flex;
+  }
+
+  /* 4 items don't fit one phone-width row, so lay them out as a tidy 2x2 grid
+     instead of wrapping 3-then-1. */
   .ep-nav__links {
-    flex-wrap: wrap;
+    order: 2;
+    flex: 1 0 100%;
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--line);
+  }
+  .ep-nav.is-open .ep-nav__links {
+    display: grid;
   }
   .ep-nav__links a {
-    padding: 20px 16px;
+    padding: 18px 16px;
+    border-left: 0;
+  }
+  .ep-nav__links a:nth-child(even) {
+    border-left: 1px solid var(--line);
+  }
+  .ep-nav__links a:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
   }
 
   .ep-filmstrip {

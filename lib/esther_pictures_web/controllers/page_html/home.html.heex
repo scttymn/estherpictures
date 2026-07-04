@@ -4,21 +4,40 @@
 <% active_player = active && clip_player(active) %>
 <main class="ep">
   <%!-- ============================================================ NAV --%>
-  <nav class="ep-nav" aria-label="Primary">
+  <nav class="ep-nav" id="site-nav" aria-label="Primary">
     <a href="/" class="ep-nav__brand" aria-label={"#{s.collective_name} — home"}>
       <span>{s.collective_name}</span>
     </a>
+    <button
+      type="button"
+      id="site-nav-toggle"
+      class="ep-nav__toggle"
+      aria-expanded="false"
+      aria-controls="site-nav-links"
+      aria-label="Toggle menu"
+    >
+      <svg class="ep-nav__chev" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+        <path
+          d="M4 6l4 4 4-4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
     <div class="ep-nav__tag">{s.tagline}</div>
-    <div class="ep-nav__links">
-      <a href="#showcase">01 SHOWCASE</a>
+    <div class="ep-nav__links" id="site-nav-links">
+      <a href="#clips">01 CLIPS</a>
       <a href="#craft">02 CRAFT</a>
-      <a href="#ensemble">03 ENSEMBLE</a>
+      <a href="#cast">03 CAST</a>
       <a href="#contact">04 CONTACT</a>
     </div>
   </nav>
 
   <%!-- =========================================================== HERO --%>
-  <section class="ep-hero" id="showcase">
+  <section class="ep-hero" id="clips">
     <div class="ep-hero__slate">
       <div class="ep-hero__slate-title">SLATE</div>
       <dl class="ep-slate-list" id="reel-slate">
@@ -56,9 +75,9 @@
       <div id="reel-player" class="ep-reel__embed">
         <%= case active_player do %>
           <% %{kind: "youtube", muted: src} -> %>
-            <iframe src={src} title="Showcase" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+            <iframe src={src} title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
           <% %{kind: "vimeo", muted: src} -> %>
-            <iframe src={src} title="Showcase" allow="autoplay; picture-in-picture"></iframe>
+            <iframe src={src} title="Clip" allow="autoplay; picture-in-picture"></iframe>
           <% %{kind: "file", muted: src} -> %>
             <video class="ep-reel__media" src={src} autoplay muted loop playsinline></video>
           <% _ -> %>
@@ -124,8 +143,8 @@
   </section>
 
   <%!-- ======================================================= ENSEMBLE --%>
-  <section class="ep-ensemble" id="ensemble">
-    <div class="ep-strip">03 — ENSEMBLE</div>
+  <section class="ep-ensemble" id="cast">
+    <div class="ep-strip">03 — CAST</div>
     <div :for={{m, i} <- Enum.with_index(@data.ensemble, 1)} class="ep-member">
       <span class="ep-member__code">{member_code(i)}</span>
       <span class="ep-member__name">{m.name}</span>
@@ -166,6 +185,28 @@
 </main>
 
 <script>
+  // Mobile nav: chevron toggles the menu; tapping an item collapses it.
+  (function () {
+    var nav = document.getElementById("site-nav");
+    var toggle = document.getElementById("site-nav-toggle");
+    if (!nav || !toggle) return;
+
+    function setOpen(open) {
+      nav.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+    }
+
+    toggle.addEventListener("click", function () {
+      setOpen(!nav.classList.contains("is-open"));
+    });
+
+    nav.querySelectorAll(".ep-nav__links a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        setOpen(false);
+      });
+    });
+  })();
+
   (function () {
     var player = document.getElementById("reel-player");
     var slate = document.getElementById("reel-slate");
@@ -191,7 +232,7 @@
       if (kind === "youtube" || kind === "vimeo") {
         var f = document.createElement("iframe");
         f.src = src;
-        f.title = "Showcase";
+        f.title = "Clip";
         f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
         return f;
       }
