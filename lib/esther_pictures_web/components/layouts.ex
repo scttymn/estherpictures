@@ -53,7 +53,12 @@ defmodule EstherPicturesWeb.Layouts do
           <.link navigate={~p"/admin/craft"} class="btn btn-ghost btn-sm">Craft</.link>
           <.link navigate={~p"/admin/clips"} class="btn btn-ghost btn-sm">Clips</.link>
           <.link navigate={~p"/admin/ensemble"} class="btn btn-ghost btn-sm">Cast</.link>
-          <.link :if={@is_admin} navigate={~p"/admin/users"} class="btn btn-ghost btn-sm">Users</.link>
+          <.link :if={@is_admin} navigate={~p"/admin/history"} class="btn btn-ghost btn-sm">
+            History
+          </.link>
+          <.link :if={@is_admin} navigate={~p"/admin/users"} class="btn btn-ghost btn-sm">
+            Users
+          </.link>
         </nav>
 
         <div class="ml-auto flex items-center gap-3 text-sm shrink-0">

@@ -13,7 +13,7 @@ defmodule EstherPicturesWeb.Admin.ClipController do
   end
 
   def create(conn, %{"clip" => params}) do
-    case handle_thumbnail(params, nil) do
+    case handle_thumbnail(params) do
       {:ok, params} ->
         case Content.create_clip(params) do
           {:ok, _} -> conn |> put_flash(:info, "Clip added.") |> redirect(to: ~p"/admin/clips")
@@ -35,9 +35,9 @@ defmodule EstherPicturesWeb.Admin.ClipController do
   def update(conn, %{"id" => id, "clip" => params}) do
     clip = Content.get_clip!(id)
 
-    case handle_thumbnail(params, clip) do
+    case handle_thumbnail(params) do
       {:ok, params} ->
-        case Content.update_clip(clip, params) do
+        case Content.update_clip(clip, params, conn.assigns.current_scope.user) do
           {:ok, _} -> conn |> put_flash(:info, "Clip updated.") |> redirect(to: ~p"/admin/clips")
           {:error, changeset} -> render(conn, :edit, clip: clip, changeset: changeset)
         end
@@ -51,20 +51,19 @@ defmodule EstherPicturesWeb.Admin.ClipController do
 
   def delete(conn, %{"id" => id}) do
     clip = Content.get_clip!(id)
-    {:ok, _} = Content.delete_clip(clip)
-    Uploads.delete(clip.thumbnail_path)
+    {:ok, _} = Content.delete_clip(clip, conn.assigns.current_scope.user)
     conn |> put_flash(:info, "Clip removed.") |> redirect(to: ~p"/admin/clips")
   end
 
   # Stores an uploaded thumbnail (if one was provided) and folds the resulting
-  # path into the params, deleting any previous thumbnail. If no file was
-  # provided, leaves the existing thumbnail untouched.
-  defp handle_thumbnail(params, clip) do
+  # path into the params. Replaced/deleted thumbnails are NOT removed from
+  # disk here — version snapshots still reference them; the Content context
+  # garbage-collects files once no clip or retained snapshot points at them.
+  defp handle_thumbnail(params) do
     case params["thumbnail"] do
       %Plug.Upload{} = upload ->
         case Uploads.store_image(upload, "clips") do
           {:ok, path} ->
-            if clip, do: Uploads.delete(clip.thumbnail_path)
             {:ok, params |> drop_upload() |> Map.put("thumbnail_path", path)}
 
           {:error, _} = err ->

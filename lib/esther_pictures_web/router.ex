@@ -91,8 +91,18 @@ defmodule EstherPicturesWeb.Router do
 
   # User management is restricted to administrators.
   scope "/admin", EstherPicturesWeb.Admin, as: :admin do
-    pipe_through [:browser, :require_authenticated_user, :require_password_change, :require_admin_user]
+    pipe_through [
+      :browser,
+      :require_authenticated_user,
+      :require_password_change,
+      :require_admin_user
+    ]
 
     resources "/users", UserController, only: [:index, :new, :create, :delete]
+
+    get "/history", HistoryController, :index
+    post "/history/:id/restore", HistoryController, :restore
+    delete "/history/:id", HistoryController, :delete
+    delete "/history", HistoryController, :clear
   end
 end

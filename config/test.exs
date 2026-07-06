@@ -20,6 +20,9 @@ config :esther_pictures, EstherPicturesWeb.Endpoint,
   secret_key_base: "wSqljBLFAGFtR3syn61s2pE+a6Jc1ec+/A9gneKhS1CifSJ0zlX2/rij6bbKPYop",
   server: false
 
+# Keep test uploads (and upload garbage collection) away from real files
+config :esther_pictures, EstherPictures.Uploads, root: Path.expand("../tmp/test_uploads", __DIR__)
+
 # In test we don't send emails
 config :esther_pictures, EstherPictures.Mailer, adapter: Swoosh.Adapters.Test
 

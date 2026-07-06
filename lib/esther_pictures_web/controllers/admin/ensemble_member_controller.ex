@@ -27,7 +27,7 @@ defmodule EstherPicturesWeb.Admin.EnsembleMemberController do
   def update(conn, %{"id" => id, "ensemble_member" => params}) do
     member = Content.get_ensemble_member!(id)
 
-    case Content.update_ensemble_member(member, params) do
+    case Content.update_ensemble_member(member, params, conn.assigns.current_scope.user) do
       {:ok, _} -> conn |> put_flash(:info, "Member updated.") |> redirect(to: ~p"/admin/ensemble")
       {:error, changeset} -> render(conn, :edit, member: member, changeset: changeset)
     end
@@ -35,7 +35,7 @@ defmodule EstherPicturesWeb.Admin.EnsembleMemberController do
 
   def delete(conn, %{"id" => id}) do
     member = Content.get_ensemble_member!(id)
-    {:ok, _} = Content.delete_ensemble_member(member)
+    {:ok, _} = Content.delete_ensemble_member(member, conn.assigns.current_scope.user)
     conn |> put_flash(:info, "Member removed.") |> redirect(to: ~p"/admin/ensemble")
   end
 end

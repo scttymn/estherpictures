@@ -1,0 +1,108 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    History
+    <:subtitle>
+      Every edit and deletion, newest first. Expand an entry to see exactly what
+      changed and to restore it — the state a restore replaces is saved too, so
+      a restore can itself be undone.
+    </:subtitle>
+    <:actions>
+      <.link
+        :if={@entries != []}
+        href={~p"/admin/history"}
+        method="delete"
+        data-confirm={
+          "Discard ALL history? Nothing can be rolled back afterwards, and images " <>
+            "no longer used by a clip will be permanently deleted."
+        }
+        class="btn btn-outline btn-error btn-sm"
+      >
+        Clear history
+      </.link>
+    </:actions>
+  </.header>
+
+  <p :if={@entries == []} class="mt-8 opacity-70">
+    No changes recorded yet. Edits and deletions will show up here.
+  </p>
+
+  <div :if={@entries != []} class="mt-8 border-t border-base-300">
+    <details :for={{v, changes} <- @entries} class="border-b border-base-300">
+      <summary class="flex items-center gap-3 py-3 cursor-pointer list-none select-none">
+        <.icon
+          name="hero-chevron-right-micro"
+          class="size-4 shrink-0 opacity-50 transition-transform [details[open]>summary_&]:rotate-90"
+        />
+        <span class="whitespace-nowrap opacity-70 text-sm">
+          {Calendar.strftime(v.inserted_at, "%b %-d, %Y %H:%M")} UTC
+        </span>
+        <span class="font-semibold whitespace-nowrap">{type_name(v.item_type)}</span>
+        <span :if={item_label(v)} class="opacity-70 truncate">· {item_label(v)}</span>
+        <span class={[
+          "badge badge-sm shrink-0",
+          (v.action == "delete" && "badge-error") || "badge-ghost"
+        ]}>
+          {(v.action == "delete" && "deleted") || "edited"}
+        </span>
+        <span class="ml-auto opacity-70 text-sm whitespace-nowrap hidden sm:inline">
+          {(v.user && v.user.email) || "—"}
+        </span>
+      </summary>
+
+      <div class="pb-4 pl-7 space-y-3">
+        <p :if={changes == []} class="opacity-70 text-sm">
+          Saved without changing anything.
+        </p>
+
+        <div :if={changes != []} class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th class="w-40">Field</th>
+                <th>Before</th>
+                <th>After</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={{field, before, new_value} <- changes}>
+                <td class="whitespace-nowrap font-medium align-top">{field_name(field)}</td>
+                <td class="align-top text-error whitespace-pre-wrap break-all">
+                  {field_value(before)}
+                </td>
+                <td class="align-top text-success whitespace-pre-wrap break-all">
+                  {field_value(new_value)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <.link
+            href={~p"/admin/history/#{v}/restore"}
+            method="post"
+            data-confirm={
+              if v.action == "delete",
+                do: "Bring back this #{type_name(v.item_type) |> String.downcase()}?",
+                else: "Revert to the \"before\" state shown above?"
+            }
+            class="btn btn-outline btn-sm"
+          >
+            {(v.action == "delete" && "Bring back") || "Revert to before"}
+          </.link>
+          <.link
+            href={~p"/admin/history/#{v}"}
+            method="delete"
+            data-confirm={
+              "Discard this history entry? It can no longer be restored, and images " <>
+                "only it references will be permanently deleted."
+            }
+            class="btn btn-ghost btn-sm text-error"
+          >
+            Discard entry
+          </.link>
+        </div>
+      </div>
+    </details>
+  </div>
+</Layouts.app>

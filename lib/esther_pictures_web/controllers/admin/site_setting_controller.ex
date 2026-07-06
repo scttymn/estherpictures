@@ -11,7 +11,7 @@ defmodule EstherPicturesWeb.Admin.SiteSettingController do
   def update(conn, %{"site_setting" => params}) do
     setting = Content.get_site_settings()
 
-    case Content.update_site_settings(setting, params) do
+    case Content.update_site_settings(setting, params, conn.assigns.current_scope.user) do
       {:ok, _setting} ->
         conn
         |> put_flash(:info, "Site copy updated.")

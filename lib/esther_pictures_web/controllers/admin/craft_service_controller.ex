@@ -30,7 +30,7 @@ defmodule EstherPicturesWeb.Admin.CraftServiceController do
   def update(conn, %{"id" => id, "craft_service" => params}) do
     service = Content.get_craft_service!(id)
 
-    case Content.update_craft_service(service, params) do
+    case Content.update_craft_service(service, params, conn.assigns.current_scope.user) do
       {:ok, _} ->
         conn |> put_flash(:info, "Service updated.") |> redirect(to: ~p"/admin/craft")
 
@@ -41,7 +41,7 @@ defmodule EstherPicturesWeb.Admin.CraftServiceController do
 
   def delete(conn, %{"id" => id}) do
     service = Content.get_craft_service!(id)
-    {:ok, _} = Content.delete_craft_service(service)
+    {:ok, _} = Content.delete_craft_service(service, conn.assigns.current_scope.user)
     conn |> put_flash(:info, "Service removed.") |> redirect(to: ~p"/admin/craft")
   end
 end

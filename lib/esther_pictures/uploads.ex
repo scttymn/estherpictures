@@ -34,6 +34,14 @@ defmodule EstherPictures.Uploads do
 
   def store_image(_not_an_upload, _subdir), do: {:error, "No file was uploaded."}
 
+  @doc "Web paths of every stored upload in `subdir`."
+  def list(subdir) do
+    case File.ls(dir_for(subdir)) do
+      {:ok, names} -> Enum.map(names, &"/uploads/#{subdir}/#{&1}")
+      {:error, _} -> []
+    end
+  end
+
   @doc "Deletes a previously stored upload given its web path. Best-effort."
   def delete(nil), do: :ok
   def delete(""), do: :ok
