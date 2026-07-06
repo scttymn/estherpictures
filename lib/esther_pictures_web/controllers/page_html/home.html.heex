@@ -75,7 +75,13 @@
       <div id="reel-player" class="ep-reel__embed">
         <%= case active_player do %>
           <% %{kind: "youtube", muted: src} -> %>
-            <iframe src={src} title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+            <iframe
+              id="reel-yt"
+              src={src}
+              title="Clip"
+              allow="autoplay; encrypted-media; picture-in-picture"
+            >
+            </iframe>
           <% %{kind: "vimeo", muted: src} -> %>
             <iframe src={src} title="Clip" allow="autoplay; picture-in-picture"></iframe>
           <% %{kind: "file", muted: src} -> %>
@@ -112,6 +118,7 @@
       aria-pressed={i == 1}
       data-index={i}
       data-kind={clip_player(clip).kind}
+      data-yt-id={clip_player(clip).id}
       data-src-muted={clip_player(clip).muted}
       data-src-unmuted={clip_player(clip).unmuted}
       data-title={clip.title}
@@ -217,6 +224,88 @@
     var activeEl = null;
     var muted = true;
 
+    // --- YouTube IFrame Player API --------------------------------------
+    // iOS forbids autoplaying unmuted media, and swapping in a fresh iframe on
+    // unmute loses the tap gesture (the embed loads async, after the gesture
+    // expires) — so the video just shows YouTube's poster. Instead we keep one
+    // persistent player and call unMute()/playVideo() synchronously inside the
+    // tap, which iOS accepts. The first clip's server-rendered iframe carries
+    // enablejsapi=1 so the API can adopt it without a reload.
+    var ytPlayer = null;
+    var ytReady = false;
+    var ytApiLoading = false;
+    var ytQueue = [];
+
+    var YT_VARS = {
+      autoplay: 1, mute: 1, loop: 1, controls: 0, modestbranding: 1,
+      rel: 0, playsinline: 1, iv_load_policy: 3, disablekb: 1, fs: 0
+    };
+
+    window.onYouTubeIframeAPIReady = function () {
+      ytReady = true;
+      var q = ytQueue;
+      ytQueue = [];
+      q.forEach(function (cb) { cb(); });
+    };
+
+    function whenYT(cb) {
+      if (ytReady) return cb();
+      ytQueue.push(cb);
+      if (!ytApiLoading) {
+        ytApiLoading = true;
+        var tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      }
+    }
+
+    // Apply the current mute state to a player, in-gesture on the sound tap.
+    function ytApply(p) {
+      if (muted) { p.mute(); } else { p.unMute(); }
+      p.playVideo();
+    }
+
+    var ytEvents = {
+      onReady: function (e) { ytApply(e.target); },
+      onStateChange: function (e) {
+        // Belt-and-suspenders looping (loop+playlist is unreliable via the API).
+        if (e.data === window.YT.PlayerState.ENDED) {
+          e.target.seekTo(0, true);
+          e.target.playVideo();
+        }
+      }
+    };
+
+    function showYouTube(id) {
+      whenYT(function () {
+        if (ytPlayer) {
+          ytPlayer.loadVideoById({ videoId: id });
+          if (muted) { ytPlayer.mute(); } else { ytPlayer.unMute(); }
+          return;
+        }
+        // No player yet (initial clip was not YouTube): build one, keeping the
+        // youtube-nocookie host to match the server-rendered privacy choice.
+        player.innerHTML = "";
+        var host = document.createElement("div");
+        host.id = "reel-yt";
+        player.appendChild(host);
+        ytPlayer = new window.YT.Player(host, {
+          host: "https://www.youtube-nocookie.com",
+          videoId: id,
+          playerVars: Object.assign({ playlist: id }, YT_VARS),
+          events: ytEvents
+        });
+      });
+    }
+
+    function destroyYouTube() {
+      if (ytPlayer) {
+        try { ytPlayer.destroy(); } catch (e) {}
+        ytPlayer = null;
+      }
+    }
+
+    // --- Vimeo / uploaded-file players (unchanged iframe/element swap) ----
     function buildMedia(kind, src) {
       if (!src) return null;
       if (kind === "file") {
@@ -229,7 +318,7 @@
         v.muted = muted;
         return v;
       }
-      if (kind === "youtube" || kind === "vimeo") {
+      if (kind === "vimeo") {
         var f = document.createElement("iframe");
         f.src = src;
         f.title = "Clip";
@@ -241,6 +330,11 @@
 
     function render(clip) {
       var kind = clip.dataset.kind;
+      if (kind === "youtube") {
+        showYouTube(clip.dataset.ytId);
+        return;
+      }
+      destroyYouTube();
       var src = muted ? clip.dataset.srcMuted : clip.dataset.srcUnmuted;
       player.innerHTML = "";
       var el = buildMedia(kind, src);
@@ -294,12 +388,30 @@
     if (soundBtn) {
       soundBtn.addEventListener("click", function () {
         muted = !muted;
-        if (activeEl) render(activeEl);
+        if (activeEl) {
+          // For YouTube, drive the live player in-gesture (iOS needs the
+          // unmute/play call to happen synchronously inside the tap). Other
+          // kinds rebuild their element as before.
+          if (activeEl.dataset.kind === "youtube" && ytPlayer) {
+            ytApply(ytPlayer);
+          } else {
+            render(activeEl);
+          }
+        }
         syncSound();
       });
     }
 
-    // First clip is active and already server-rendered muted; just sync state.
+    // First clip is active and already server-rendered muted. If it's a
+    // YouTube clip, adopt that iframe into the Player API now so the first
+    // unmute tap can drive it synchronously.
     activate(clips[0], { render: false, resetMute: true });
+    if (clips[0].dataset.kind === "youtube") {
+      whenYT(function () {
+        if (!ytPlayer) {
+          ytPlayer = new window.YT.Player("reel-yt", { events: ytEvents });
+        }
+      });
+    }
   })();
 </script>

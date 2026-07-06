@@ -38,24 +38,32 @@ defmodule EstherPicturesWeb.PageHTML do
   Player descriptor for a clip, used to fill the filmstrip's data-* attributes:
 
       %{kind: "youtube" | "vimeo" | "file" | "none",
+        id: "<youtube video id>" | nil,
         muted: "<src>", unmuted: "<src>"}
 
   `muted`/`unmuted` are the chrome-less embed URLs (or the file URL) for each
-  audio state; the frontend swaps between them.
+  audio state. For YouTube the frontend drives audio through the IFrame Player
+  API keyed by `id` instead; `muted`/`unmuted` remain the server-rendered and
+  no-JS fallback sources. Vimeo/file still swap between the two URLs.
   """
   def clip_player(clip) do
     case reel_source(clip.video_url) do
       {:youtube, id} ->
-        %{kind: "youtube", muted: youtube_embed_url(id, true), unmuted: youtube_embed_url(id, false)}
+        %{
+          kind: "youtube",
+          id: id,
+          muted: youtube_embed_url(id, true),
+          unmuted: youtube_embed_url(id, false)
+        }
 
       {:vimeo, id} ->
-        %{kind: "vimeo", muted: vimeo_embed_url(id, true), unmuted: vimeo_embed_url(id, false)}
+        %{kind: "vimeo", id: nil, muted: vimeo_embed_url(id, true), unmuted: vimeo_embed_url(id, false)}
 
       {:file, url} ->
-        %{kind: "file", muted: url, unmuted: url}
+        %{kind: "file", id: nil, muted: url, unmuted: url}
 
       :none ->
-        %{kind: "none", muted: "", unmuted: ""}
+        %{kind: "none", id: nil, muted: "", unmuted: ""}
     end
   end
 
@@ -73,7 +81,11 @@ defmodule EstherPicturesWeb.PageHTML do
         "playsinline" => 1,
         "iv_load_policy" => 3,
         "disablekb" => 1,
-        "fs" => 0
+        "fs" => 0,
+        # Lets the IFrame Player API adopt this server-rendered iframe so the
+        # frontend can unmute/play in direct response to a tap (required for
+        # sound playback on iOS, which forbids autoplaying unmuted media).
+        "enablejsapi" => 1
       })
 
     "https://www.youtube-nocookie.com/embed/#{id}?#{params}"
