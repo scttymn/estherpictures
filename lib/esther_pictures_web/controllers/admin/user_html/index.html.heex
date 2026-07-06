@@ -1,4 +1,29 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
+  <dialog :if={temp_password = Phoenix.Flash.get(@flash, :temp_password)} class="modal" open>
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">
+        Account created for {Phoenix.Flash.get(@flash, :temp_password_email)}
+      </h3>
+      <p class="py-2 text-sm opacity-70">
+        Copy this temporary password and send it to them. It won't be shown again.
+        They'll be asked to change it on first login.
+      </p>
+      <div class="mt-2 flex items-center gap-2">
+        <code class="flex-1 rounded bg-base-200 px-3 py-2 font-mono select-all">
+          {temp_password}
+        </code>
+        <button type="button" class="btn btn-primary btn-sm" data-copy={temp_password}>
+          Copy
+        </button>
+      </div>
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Done</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
   <.header>
     Users
     <:subtitle>Editors and administrators with access to this admin.</:subtitle>
@@ -21,10 +46,15 @@
         <tr :for={u <- @users}>
           <td class="font-semibold">
             {u.email}
-            <span :if={u.id == @current_user.id} class="badge badge-ghost badge-sm ml-1">you</span>
+            <span :if={u.id == @current_user.id} class="badge badge-ghost badge-sm ml-1">
+              you
+            </span>
           </td>
           <td>
-            <span class={["badge badge-sm", u.role == "admin" && "badge-primary" || "badge-ghost"]}>
+            <span class={[
+              "badge badge-sm",
+              (u.role == "admin" && "badge-primary") || "badge-ghost"
+            ]}>
               {u.role}
             </span>
           </td>

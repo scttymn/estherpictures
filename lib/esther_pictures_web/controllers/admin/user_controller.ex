@@ -22,11 +22,8 @@ defmodule EstherPicturesWeb.Admin.UserController do
     case Accounts.create_editor(attrs) do
       {:ok, user} ->
         conn
-        |> put_flash(
-          :info,
-          "Account created for #{user.email}. Temporary password: #{temp_password} — " <>
-            "copy it now and send it to them. They'll be asked to change it on first login."
-        )
+        |> put_flash(:temp_password, temp_password)
+        |> put_flash(:temp_password_email, user.email)
         |> redirect(to: ~p"/admin/users")
 
       {:error, changeset} ->
