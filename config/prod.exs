@@ -12,17 +12,10 @@ config :esther_pictures, EstherPicturesWeb.Endpoint,
 # directory, so they survive deploys. The deploy setup creates this path.
 config :esther_pictures, EstherPictures.Uploads, root: "/opt/estherpictures/data/uploads"
 
-# Force using SSL in production. This also sets the "strict-security-transport" header,
-# known as HSTS. If you have a health check endpoint, you may want to exclude it below.
-# Note `:force_ssl` is required to be set at compile-time.
-config :esther_pictures, EstherPicturesWeb.Endpoint,
-  force_ssl: [
-    rewrite_on: [:x_forwarded_proto],
-    exclude: [
-      # paths: ["/health"],
-      hosts: ["localhost", "127.0.0.1"]
-    ]
-  ]
+# TLS is terminated at Cloudflare (tunnel/orange-cloud). Origin traffic is plain
+# HTTP to Traefik, so X-Forwarded-Proto is often "http". Phoenix `force_ssl`
+# would then 301→https forever (redirect loop). Keep HTTPS enforcement on CF
+# ("Always Use HTTPS" / HSTS); do not force_ssl at the app.
 
 # Configure Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
