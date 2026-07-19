@@ -94,6 +94,10 @@ defmodule EstherPictures.Accounts.User do
       password field is not desired (like when using this changeset for
       validations on a LiveView form), this option can be set to `false`.
       Defaults to `true`.
+
+    * `:skip_complexity` - When `true`, only requires a present password of
+      valid length (used for numeric temporary passwords set by admins).
+      Defaults to `false`.
   """
   def password_changeset(user, attrs, opts \\ []) do
     user
@@ -103,14 +107,21 @@ defmodule EstherPictures.Accounts.User do
   end
 
   defp validate_password(changeset, opts) do
-    changeset
-    |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
-    # Examples of additional password validation:
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
-    |> maybe_hash_password(opts)
+    changeset =
+      changeset
+      |> validate_required([:password])
+      |> validate_length(:password, min: 7, max: 72)
+
+    changeset =
+      if Keyword.get(opts, :skip_complexity, false) do
+        changeset
+      else
+        changeset
+        |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
+        |> validate_format(:password, ~r/[0-9]/, message: "at least one digit")
+      end
+
+    maybe_hash_password(changeset, opts)
   end
 
   defp maybe_hash_password(changeset, opts) do

@@ -33,20 +33,23 @@ Repo.delete_all(EnsembleMember)
 craft = [
   {1, "Writing",
    "Original screenplays and adaptations, developed in-house from first page to shooting draft."},
-  {2, "Directing", "A tight bench of directors with a point of view, from short-form to feature."},
+  {2, "Directing",
+   "A tight bench of directors with a point of view, from short-form to feature."},
   {3, "Acting & Ensemble",
    "A resident ensemble and a casting network built over a decade of independent work."},
   {4, "Post & Craft", "Edit, color, sound, and score — the finishing that protects the cut."}
 ]
 
 for {position, title, description} <- craft do
-  {:ok, _} = Content.create_craft_service(%{position: position, title: title, description: description})
+  {:ok, _} =
+    Content.create_craft_service(%{position: position, title: title, description: description})
 end
 
 # Clip 01 is seeded with a sample video so the hero plays on first load; the
 # rest start empty (add videos + upload thumbnails in the admin).
 clips = [
-  {1, "The Quiet Coast", "https://www.youtube.com/watch?v=bFcu0Rn1d7w", "04:12", "2.39 : 1 · DCP", "2023", "NOW PLAYING"},
+  {1, "The Quiet Coast", "https://www.youtube.com/watch?v=bFcu0Rn1d7w", "04:12", "2.39 : 1 · DCP",
+   "2023", "NOW PLAYING"},
   {2, "Nightshift", "", "03:48", "1.85 : 1", "2022", "SELECTED"},
   {3, "Salt", "", "02:31", "2.39 : 1", "2024", "SELECTED"},
   {4, "A Long Winter", "", "05:07", "1.66 : 1", "2021", "SELECTED"}
@@ -81,4 +84,6 @@ for {position, name, role, since_year} <- ensemble do
     })
 end
 
-IO.puts("Seeded site content (#{length(craft)} craft, #{length(clips)} clips, #{length(ensemble)} ensemble).")
+IO.puts(
+  "Seeded site content (#{length(craft)} craft, #{length(clips)} clips, #{length(ensemble)} ensemble)."
+)

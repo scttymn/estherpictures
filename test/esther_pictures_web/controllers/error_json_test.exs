@@ -2,7 +2,9 @@ defmodule EstherPicturesWeb.ErrorJSONTest do
   use EstherPicturesWeb.ConnCase, async: true
 
   test "renders 404" do
-    assert EstherPicturesWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+    assert EstherPicturesWeb.ErrorJSON.render("404.json", %{}) == %{
+             errors: %{detail: "Not Found"}
+           }
   end
 
   test "renders 500" do

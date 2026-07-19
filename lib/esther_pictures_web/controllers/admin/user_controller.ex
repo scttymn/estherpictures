@@ -24,10 +24,39 @@ defmodule EstherPicturesWeb.Admin.UserController do
         conn
         |> put_flash(:temp_password, temp_password)
         |> put_flash(:temp_password_email, user.email)
+        |> put_flash(:temp_password_kind, "created")
         |> redirect(to: ~p"/admin/users")
 
       {:error, changeset} ->
         render(conn, :new, changeset: changeset)
+    end
+  end
+
+  def reset_password(conn, %{"id" => id}) do
+    user = Accounts.get_user!(id)
+    current = conn.assigns.current_scope.user
+
+    if user.id == current.id do
+      conn
+      |> put_flash(
+        :error,
+        "You can't reset your own password this way. Use Change password instead."
+      )
+      |> redirect(to: ~p"/admin/users")
+    else
+      case Accounts.reset_user_temp_password(user) do
+        {:ok, {user, temp_password}} ->
+          conn
+          |> put_flash(:temp_password, temp_password)
+          |> put_flash(:temp_password_email, user.email)
+          |> put_flash(:temp_password_kind, "reset")
+          |> redirect(to: ~p"/admin/users")
+
+        {:error, _changeset} ->
+          conn
+          |> put_flash(:error, "Could not reset password for #{user.email}.")
+          |> redirect(to: ~p"/admin/users")
+      end
     end
   end
 

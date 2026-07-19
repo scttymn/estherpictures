@@ -99,6 +99,7 @@ defmodule EstherPicturesWeb.Router do
     ]
 
     resources "/users", UserController, only: [:index, :new, :create, :delete]
+    post "/users/:id/reset-password", UserController, :reset_password
 
     get "/history", HistoryController, :index
     post "/history/:id/restore", HistoryController, :restore

@@ -57,7 +57,12 @@ defmodule EstherPicturesWeb.PageHTML do
         }
 
       {:vimeo, id} ->
-        %{kind: "vimeo", id: nil, muted: vimeo_embed_url(id, true), unmuted: vimeo_embed_url(id, false)}
+        %{
+          kind: "vimeo",
+          id: nil,
+          muted: vimeo_embed_url(id, true),
+          unmuted: vimeo_embed_url(id, false)
+        }
 
       {:file, url} ->
         %{kind: "file", id: nil, muted: url, unmuted: url}

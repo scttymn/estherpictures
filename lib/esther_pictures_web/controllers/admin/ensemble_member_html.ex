@@ -10,7 +10,14 @@ defmodule EstherPicturesWeb.Admin.EnsembleMemberHTML do
 
   def member_form(assigns) do
     ~H"""
-    <.form :let={f} for={@changeset} as={:ensemble_member} action={@action} method={@method} class="space-y-4 max-w-lg">
+    <.form
+      :let={f}
+      for={@changeset}
+      as={:ensemble_member}
+      action={@action}
+      method={@method}
+      class="space-y-4 max-w-lg"
+    >
       <.input field={f[:position]} type="number" label="Position (controls order & the A1/A2 code)" />
       <.input field={f[:name]} label="Name" required />
       <.input field={f[:role]} label="Role (e.g. DIRECTOR / ACTOR)" />

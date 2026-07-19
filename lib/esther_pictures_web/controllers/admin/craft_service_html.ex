@@ -10,8 +10,19 @@ defmodule EstherPicturesWeb.Admin.CraftServiceHTML do
 
   def service_form(assigns) do
     ~H"""
-    <.form :let={f} for={@changeset} as={:craft_service} action={@action} method={@method} class="space-y-4 max-w-lg">
-      <.input field={f[:position]} type="number" label="Position (controls order & the 01–04 number)" />
+    <.form
+      :let={f}
+      for={@changeset}
+      as={:craft_service}
+      action={@action}
+      method={@method}
+      class="space-y-4 max-w-lg"
+    >
+      <.input
+        field={f[:position]}
+        type="number"
+        label="Position (controls order & the 01–04 number)"
+      />
       <.input field={f[:title]} label="Title" required />
       <.input field={f[:description]} type="textarea" label="Description" />
       <div class="flex gap-3">

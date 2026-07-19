@@ -107,8 +107,8 @@ defmodule EstherPictures.Accounts do
   Creates an editor account with a temporary password (admin-initiated invite).
 
   The account is flagged `must_change_password: true` so the editor is forced
-  to set their own password on first login. The temporary password is returned
-  to the admin (in the changeset attrs) so it can be communicated out-of-band.
+  to set their own password on first login. Temporary passwords are numeric and
+  skip the usual complexity rules.
   """
   def create_editor(attrs) do
     attrs = normalize_attrs(attrs)
@@ -116,7 +116,8 @@ defmodule EstherPictures.Accounts do
 
     %User{}
     |> User.registration_changeset(
-      Map.merge(attrs, %{"role" => role, "must_change_password" => true})
+      Map.merge(attrs, %{"role" => role, "must_change_password" => true}),
+      skip_complexity: true
     )
     |> Repo.insert()
   end
@@ -130,12 +131,31 @@ defmodule EstherPictures.Accounts do
   def delete_user(%User{} = user), do: Repo.delete(user)
 
   @doc """
-  Generates a random, readable temporary password (>= 12 chars) for invites.
+  Generates a random 7-digit numeric temporary password for invites and resets.
   """
   def generate_temp_password do
-    :crypto.strong_rand_bytes(12)
-    |> Base.url_encode64(padding: false)
-    |> binary_part(0, 14)
+    # Draw 7 digits from crypto-secure bytes (each byte mod 10).
+    for <<byte <- :crypto.strong_rand_bytes(7)>>, into: "" do
+      Integer.to_string(rem(byte, 10))
+    end
+  end
+
+  @doc """
+  Resets a user's password to a new temporary numeric password.
+
+  Sets `must_change_password: true`, invalidates all existing sessions/tokens,
+  and returns `{:ok, {user, temp_password}}`.
+  """
+  def reset_user_temp_password(%User{} = user) do
+    temp_password = generate_temp_password()
+
+    case user
+         |> User.password_changeset(%{password: temp_password}, skip_complexity: true)
+         |> Ecto.Changeset.put_change(:must_change_password, true)
+         |> update_user_and_delete_all_tokens() do
+      {:ok, {user, _tokens}} -> {:ok, {user, temp_password}}
+      {:error, changeset} -> {:error, changeset}
+    end
   end
 
   defp normalize_attrs(attrs) do

@@ -6,7 +6,11 @@ defmodule EstherPicturesWeb.Admin.PasswordController do
 
   def edit(conn, _params) do
     user = conn.assigns.current_scope.user
-    render(conn, :edit, changeset: Accounts.change_user_password(user), forced: user.must_change_password)
+
+    render(conn, :edit,
+      changeset: Accounts.change_user_password(user),
+      forced: user.must_change_password
+    )
   end
 
   def update(conn, %{"user" => user_params}) do

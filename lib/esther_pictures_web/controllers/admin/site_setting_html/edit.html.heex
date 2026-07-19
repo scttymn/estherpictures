@@ -1,10 +1,19 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
     Site copy
-    <:subtitle>All one-off text on the homepage. Multi-line fields keep their line breaks.</:subtitle>
+    <:subtitle>
+      All one-off text on the homepage. Multi-line fields keep their line breaks.
+    </:subtitle>
   </.header>
 
-  <.form :let={f} for={@changeset} as={:site_setting} action={~p"/admin/settings"} method="put" class="mt-8 space-y-10">
+  <.form
+    :let={f}
+    for={@changeset}
+    as={:site_setting}
+    action={~p"/admin/settings"}
+    method="put"
+    class="mt-8 space-y-10"
+  >
     <section class="space-y-4">
       <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Header</h3>
       <.input field={f[:collective_name]} label="Collective name (nav / brand)" required />
@@ -13,16 +22,26 @@
 
     <section class="space-y-4">
       <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Hero</h3>
-      <.input field={f[:hero_heading]} type="textarea" label="Hero heading (press Enter for line breaks)" />
+      <.input
+        field={f[:hero_heading]}
+        type="textarea"
+        label="Hero heading (press Enter for line breaks)"
+      />
       <p class="text-sm opacity-60 -mt-2">
-        The clips and their slate stats are managed under
-        <.link navigate={~p"/admin/clips"} class="underline">Clips</.link>. Clip 01 plays on load.
+        The clips and their slate stats are managed under <.link
+          navigate={~p"/admin/clips"}
+          class="underline"
+        >Clips</.link>. Clip 01 plays on load.
       </p>
     </section>
 
     <section class="space-y-4">
       <h3 class="font-semibold text-lg border-b border-base-300 pb-2">Contact & footer</h3>
-      <.input field={f[:contact_heading]} type="textarea" label="Contact heading (press Enter for line breaks)" />
+      <.input
+        field={f[:contact_heading]}
+        type="textarea"
+        label="Contact heading (press Enter for line breaks)"
+      />
       <div class="grid sm:grid-cols-2 gap-4">
         <.input field={f[:email]} label="Email" />
         <.input field={f[:studio_locations]} label="Studio locations" />

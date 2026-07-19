@@ -20,7 +20,11 @@ defmodule EstherPicturesWeb.Admin.ClipHTML do
       multipart
       class="space-y-5 max-w-lg"
     >
-      <.input field={f[:position]} type="number" label="Position (controls order & the CLIP 0X number)" />
+      <.input
+        field={f[:position]}
+        type="number"
+        label="Position (controls order & the CLIP 0X number)"
+      />
       <.input field={f[:title]} label="Title" required />
       <.input
         field={f[:video_url]}
@@ -40,7 +44,11 @@ defmodule EstherPicturesWeb.Admin.ClipHTML do
       <div class="space-y-2">
         <label class="block text-sm font-semibold">Thumbnail image</label>
         <div :if={@thumbnail && @thumbnail != ""} class="flex items-center gap-3">
-          <img src={@thumbnail} alt="Current thumbnail" class="h-16 w-28 object-cover rounded border border-base-300" />
+          <img
+            src={@thumbnail}
+            alt="Current thumbnail"
+            class="h-16 w-28 object-cover rounded border border-base-300"
+          />
           <span class="text-sm opacity-60">Current thumbnail</span>
         </div>
         <input
@@ -51,8 +59,8 @@ defmodule EstherPicturesWeb.Admin.ClipHTML do
         />
         <p class="text-sm opacity-60">
           JPG, PNG, WebP, or GIF, up to 5&nbsp;MB. Since YouTube can't export a
-          frame at a chosen time, upload the still you want here.
-          {if @thumbnail && @thumbnail != "", do: "Uploading a new image replaces the current one."}
+          frame at a chosen time, upload the still you want here. {if @thumbnail && @thumbnail != "",
+            do: "Uploading a new image replaces the current one."}
         </p>
       </div>
 

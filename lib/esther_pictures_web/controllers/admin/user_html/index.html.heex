@@ -2,14 +2,18 @@
   <dialog :if={temp_password = Phoenix.Flash.get(@flash, :temp_password)} class="modal" open>
     <div class="modal-box">
       <h3 class="font-bold text-lg">
-        Account created for {Phoenix.Flash.get(@flash, :temp_password_email)}
+        <%= if Phoenix.Flash.get(@flash, :temp_password_kind) == "reset" do %>
+          Password reset for {Phoenix.Flash.get(@flash, :temp_password_email)}
+        <% else %>
+          Account created for {Phoenix.Flash.get(@flash, :temp_password_email)}
+        <% end %>
       </h3>
       <p class="py-2 text-sm opacity-70">
         Copy this temporary password and send it to them. It won't be shown again.
-        They'll be asked to change it on first login.
+        They'll be asked to change it on next login.
       </p>
       <div class="mt-2 flex items-center gap-2">
-        <code class="flex-1 rounded bg-base-200 px-3 py-2 font-mono select-all">
+        <code class="flex-1 rounded bg-base-200 px-3 py-2 font-mono select-all tracking-widest">
           {temp_password}
         </code>
         <button type="button" class="btn btn-primary btn-sm" data-copy={temp_password}>
@@ -61,7 +65,16 @@
           <td class="opacity-70">
             {if u.must_change_password, do: "Pending first login", else: "Active"}
           </td>
-          <td class="text-right">
+          <td class="text-right space-x-1">
+            <.link
+              :if={u.id != @current_user.id}
+              href={~p"/admin/users/#{u}/reset-password"}
+              method="post"
+              data-confirm={"Reset password for #{u.email}? Their current sessions will be signed out and they'll need a new temporary password."}
+              class="btn btn-ghost btn-xs"
+            >
+              Reset password
+            </.link>
             <.link
               :if={u.id != @current_user.id}
               href={~p"/admin/users/#{u}"}

@@ -17,7 +17,8 @@ defmodule EstherPicturesWeb.Admin.UserControllerTest do
       assert redirected_to(conn) == ~p"/admin/users"
 
       temp_password = Phoenix.Flash.get(conn.assigns.flash, :temp_password)
-      assert is_binary(temp_password) and byte_size(temp_password) >= 12
+      assert temp_password =~ ~r/^\d{7}$/
+      assert Phoenix.Flash.get(conn.assigns.flash, :temp_password_kind) == "created"
 
       html = conn |> get(~p"/admin/users") |> html_response(200)
       assert html =~ "Account created for newbie@example.com"
@@ -28,6 +29,39 @@ defmodule EstherPicturesWeb.Admin.UserControllerTest do
     test "does not render the modal on a plain visit", %{conn: conn} do
       html = conn |> get(~p"/admin/users") |> html_response(200)
       refute html =~ "Account created for"
+    end
+  end
+
+  describe "POST /admin/users/:id/reset-password" do
+    test "resets another user's password and shows the temp password", %{conn: conn} do
+      editor = user_fixture(%{email: "editor@example.com"})
+
+      conn = post(conn, ~p"/admin/users/#{editor}/reset-password")
+      assert redirected_to(conn) == ~p"/admin/users"
+
+      temp_password = Phoenix.Flash.get(conn.assigns.flash, :temp_password)
+      assert temp_password =~ ~r/^\d{7}$/
+      assert Phoenix.Flash.get(conn.assigns.flash, :temp_password_kind) == "reset"
+      assert Phoenix.Flash.get(conn.assigns.flash, :temp_password_email) == "editor@example.com"
+
+      html = conn |> get(~p"/admin/users") |> html_response(200)
+      assert html =~ "Password reset for editor@example.com"
+      assert html =~ temp_password
+
+      editor = EstherPictures.Accounts.get_user!(editor.id)
+      assert editor.must_change_password
+
+      assert EstherPictures.Accounts.get_user_by_email_and_password(
+               "editor@example.com",
+               temp_password
+             )
+    end
+
+    test "does not allow resetting your own password", %{conn: conn, admin: admin} do
+      conn = post(conn, ~p"/admin/users/#{admin}/reset-password")
+      assert redirected_to(conn) == ~p"/admin/users"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "own password"
+      refute Phoenix.Flash.get(conn.assigns.flash, :temp_password)
     end
   end
 end

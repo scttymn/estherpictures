@@ -24,7 +24,16 @@ defmodule EstherPictures.Content.Clip do
 
   def changeset(clip, attrs) do
     clip
-    |> cast(attrs, [:position, :title, :video_url, :thumbnail_path, :runtime, :format, :years, :status])
+    |> cast(attrs, [
+      :position,
+      :title,
+      :video_url,
+      :thumbnail_path,
+      :runtime,
+      :format,
+      :years,
+      :status
+    ])
     |> validate_required([:title])
     |> validate_length(:title, max: 120)
   end

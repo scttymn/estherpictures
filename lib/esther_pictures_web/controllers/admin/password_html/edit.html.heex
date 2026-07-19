@@ -11,7 +11,7 @@
       <.input
         field={f[:password]}
         type="password"
-        label="New password (min 12 characters)"
+        label="New password (min 7 chars, 1 uppercase, 1 number)"
         autocomplete="new-password"
         required
         phx-mounted={JS.focus()}
@@ -23,7 +23,9 @@
         autocomplete="new-password"
         required
       />
-      <.button class="btn btn-primary w-full mt-2">Save password <span aria-hidden="true">→</span></.button>
+      <.button class="btn btn-primary w-full mt-2">
+        Save password <span aria-hidden="true">→</span>
+      </.button>
     </.form>
   </div>
 </Layouts.auth>

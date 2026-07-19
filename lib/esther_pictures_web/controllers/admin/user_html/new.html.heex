@@ -8,7 +8,13 @@
   </.header>
 
   <div class="mt-8">
-    <.form :let={f} for={@changeset} as={:user} action={~p"/admin/users"} class="space-y-4 max-w-lg">
+    <.form
+      :let={f}
+      for={@changeset}
+      as={:user}
+      action={~p"/admin/users"}
+      class="space-y-4 max-w-lg"
+    >
       <.input field={f[:email]} type="email" label="Email" autocomplete="off" required />
       <.input
         field={f[:role]}

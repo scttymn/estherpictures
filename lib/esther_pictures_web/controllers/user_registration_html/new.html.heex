@@ -8,12 +8,18 @@
       </:subtitle>
     </.header>
 
-    <.form :let={f} for={@changeset} as={:user} action={~p"/users/register"} id="registration_form">
+    <.form
+      :let={f}
+      for={@changeset}
+      as={:user}
+      action={~p"/users/register"}
+      id="registration_form"
+    >
       <.input field={f[:email]} type="email" label="Email" autocomplete="username" required />
       <.input
         field={f[:password]}
         type="password"
-        label="Password (min 12 characters)"
+        label="Password (min 7 chars, 1 uppercase, 1 number)"
         autocomplete="new-password"
         required
       />
