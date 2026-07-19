@@ -85,3 +85,5 @@ USER app
 EXPOSE 4000
 
 CMD ["/opt/estherpictures/bin/docker-entrypoint"]
+
+# Coolify auto-deploy webhook verified
