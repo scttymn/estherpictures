@@ -38,17 +38,21 @@ defmodule EstherPictures.Content.EnsembleMemberTest do
   end
 
   describe "create_ensemble_member/1" do
-    test "persists bio" do
+    test "persists bio and headshot_path" do
       assert {:ok, member} =
                Content.create_ensemble_member(%{
                  "name" => "Michael Joiner",
                  "role" => "FOUNDER / ACTOR",
                  "since_year" => "1991",
-                 "bio" => "Creates memorable stories."
+                 "bio" => "Creates memorable stories.",
+                 "headshot_path" => "/uploads/cast/mj.jpg"
                })
 
       assert member.bio == "Creates memorable stories."
-      assert Content.get_ensemble_member!(member.id).bio == "Creates memorable stories."
+      assert member.headshot_path == "/uploads/cast/mj.jpg"
+      reloaded = Content.get_ensemble_member!(member.id)
+      assert reloaded.bio == "Creates memorable stories."
+      assert reloaded.headshot_path == "/uploads/cast/mj.jpg"
     end
   end
 

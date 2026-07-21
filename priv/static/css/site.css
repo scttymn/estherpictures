@@ -586,9 +586,25 @@ details.ep-member:hover > .ep-member__row .ep-member__expand {
   color: var(--ink);
 }
 
-.ep-member__bio {
+.ep-member__panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
   padding: 0 clamp(20px, 3vw, 32px) 32px;
   padding-left: calc(32px + 32px + clamp(20px, 3vw, 32px));
+}
+
+.ep-member__headshot {
+  width: 120px;
+  height: 160px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border: 1px solid var(--line-soft);
+  background: var(--hover-2);
+}
+
+.ep-member__bio {
+  flex: 1 1 auto;
   max-width: 62ch;
   font-size: 0.9375rem;
   line-height: 1.65;
@@ -834,8 +850,13 @@ details.ep-member:hover > .ep-member__row .ep-member__expand {
     flex: 1 0 100%;
     justify-content: flex-start;
   }
-  .ep-member__bio {
+  .ep-member__panel {
+    flex-direction: column;
     padding-left: clamp(20px, 3vw, 32px);
+  }
+  .ep-member__headshot {
+    width: 96px;
+    height: 128px;
   }
 
   .ep-contact {

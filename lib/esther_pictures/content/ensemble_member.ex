@@ -9,13 +9,14 @@ defmodule EstherPictures.Content.EnsembleMember do
     field :role, :string
     field :since_year, :string
     field :bio, :string, default: ""
+    field :headshot_path, :string, default: ""
 
     timestamps(type: :utc_datetime)
   end
 
   def changeset(member, attrs) do
     member
-    |> cast(attrs, [:position, :name, :role, :since_year, :bio])
+    |> cast(attrs, [:position, :name, :role, :since_year, :bio, :headshot_path])
     |> validate_required([:name])
     |> validate_length(:name, max: 120)
   end

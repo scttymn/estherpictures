@@ -200,5 +200,27 @@ defmodule EstherPictures.ContentVersioningTest do
       refute File.exists?(old_file)
       assert File.exists?(Path.join(dir, "new.jpg"))
     end
+
+    test "sweeps unreferenced cast headshots alongside clip thumbnails" do
+      root = Application.get_env(:esther_pictures, Uploads)[:root]
+      cast_dir = Path.join(root, "cast")
+      File.rm_rf!(cast_dir)
+      File.mkdir_p!(cast_dir)
+
+      live = Path.join(cast_dir, "live.jpg")
+      orphan = Path.join(cast_dir, "orphan.jpg")
+      File.write!(live, "img")
+      File.write!(orphan, "img")
+
+      {:ok, _} =
+        Content.create_ensemble_member(%{
+          "name" => "Michael Joiner",
+          "headshot_path" => "/uploads/cast/live.jpg"
+        })
+
+      assert {0, 1} = Content.clear_versions()
+      assert File.exists?(live)
+      refute File.exists?(orphan)
+    end
   end
 end

@@ -6,8 +6,9 @@ defmodule EstherPictures.Content do
 
   Updates and deletes record a `ContentVersion` snapshot of the record's prior
   state (see `list_versions/1` and `restore_version/2`) so admins can roll
-  back bad edits. Old versions are pruned per item; clip thumbnails on disk
-  are kept as long as any live clip or retained snapshot references them.
+  back bad edits. Old versions are pruned per item; uploaded images on disk
+  (clip thumbnails, cast headshots) are kept as long as any live record or
+  retained snapshot references them.
   """
 
   import Ecto.Query, warn: false
@@ -245,15 +246,22 @@ defmodule EstherPictures.Content do
   end
 
   defp sweep_orphaned_thumbnails do
-    snapshot_paths =
-      from(v in ContentVersion, where: v.item_type == "clip", select: v.data)
-      |> Repo.all()
-      |> Enum.map(& &1["thumbnail_path"])
+    sweep_orphaned_uploads("clips", "clip", :thumbnail_path, Clip) +
+      sweep_orphaned_uploads("cast", "ensemble_member", :headshot_path, EnsembleMember)
+  end
 
-    live_paths = from(c in Clip, select: c.thumbnail_path) |> Repo.all()
+  defp sweep_orphaned_uploads(subdir, item_type, field, schema) do
+    field_key = Atom.to_string(field)
+
+    snapshot_paths =
+      from(v in ContentVersion, where: v.item_type == ^item_type, select: v.data)
+      |> Repo.all()
+      |> Enum.map(& &1[field_key])
+
+    live_paths = from(r in schema, select: field(r, ^field)) |> Repo.all()
     referenced = MapSet.new(live_paths ++ snapshot_paths)
 
-    Uploads.list("clips")
+    Uploads.list(subdir)
     |> Enum.reject(&MapSet.member?(referenced, &1))
     |> Enum.map(&Uploads.delete/1)
     |> length()

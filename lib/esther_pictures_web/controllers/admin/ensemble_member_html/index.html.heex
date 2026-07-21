@@ -12,6 +12,7 @@
       <thead>
         <tr>
           <th>#</th>
+          <th></th>
           <th>Name</th>
           <th>Role</th>
           <th>Bio</th>
@@ -22,6 +23,14 @@
       <tbody>
         <tr :for={m <- @members}>
           <td class="font-mono opacity-60">{m.position}</td>
+          <td class="w-12">
+            <img
+              :if={m.headshot_path && m.headshot_path != ""}
+              src={m.headshot_path}
+              alt={m.name}
+              class="h-10 w-8 object-cover rounded border border-base-300"
+            />
+          </td>
           <td class="font-semibold">{m.name}</td>
           <td class="opacity-70">{m.role}</td>
           <td class="opacity-70 max-w-xs">
@@ -42,7 +51,7 @@
           </td>
         </tr>
         <tr :if={@members == []}>
-          <td colspan="6" class="text-center opacity-60 py-8">No members yet.</td>
+          <td colspan="7" class="text-center opacity-60 py-8">No members yet.</td>
         </tr>
       </tbody>
     </table>

@@ -51,4 +51,34 @@ defmodule EstherPicturesWeb.PageControllerTest do
     refute body =~ ~s(id="cast-member-#{without_bio.id}")
     assert body =~ "Mara Vance"
   end
+
+  test "cast bio panel shows headshot when present", %{conn: conn} do
+    {:ok, with_shot} =
+      Content.create_ensemble_member(%{
+        "position" => 1,
+        "name" => "Michael Joiner",
+        "role" => "FOUNDER / ACTOR",
+        "bio" => "A lifelong student of the craft.",
+        "headshot_path" => "/uploads/cast/michael.jpg"
+      })
+
+    {:ok, no_shot} =
+      Content.create_ensemble_member(%{
+        "position" => 2,
+        "name" => "Mara Vance",
+        "role" => "WRITER-DIRECTOR",
+        "bio" => "Writes and directs.",
+        "headshot_path" => ""
+      })
+
+    conn = get(%{conn | host: "estherpictures.com"}, ~p"/")
+    body = html_response(conn, 200)
+
+    assert body =~ ~s(src="/uploads/cast/michael.jpg")
+    assert body =~ "ep-member__headshot"
+    assert body =~ ~s(id="cast-member-#{with_shot.id}")
+    assert body =~ ~s(id="cast-member-#{no_shot.id}")
+    # Only one headshot image (the member who has a path).
+    assert length(Regex.scan(~r/ep-member__headshot/, body)) == 1
+  end
 end
