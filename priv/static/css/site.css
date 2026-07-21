@@ -543,6 +543,30 @@ details.ep-member > .ep-member__row::-webkit-details-marker {
   flex: 0 0 auto;
 }
 
+.ep-member__expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  color: var(--dim);
+  transition: color 0.15s ease;
+}
+
+.ep-member__chev {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+details.ep-member[open] > .ep-member__row .ep-member__chev {
+  transform: rotate(180deg);
+}
+
+details.ep-member:hover > .ep-member__row .ep-member__expand {
+  color: var(--ink);
+}
+
 .ep-member__bio {
   padding: 0 clamp(20px, 3vw, 32px) 32px;
   padding-left: calc(32px + 32px + clamp(20px, 3vw, 32px));

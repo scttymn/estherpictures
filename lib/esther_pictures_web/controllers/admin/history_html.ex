@@ -4,6 +4,8 @@ defmodule EstherPicturesWeb.Admin.HistoryHTML do
   embed_templates "history_html/*"
 
   @doc "Human name for a versioned item type, e.g. \"Craft service\"."
+  def type_name("ensemble_member"), do: "Cast member"
+
   def type_name(item_type) do
     item_type |> String.replace("_", " ") |> String.capitalize()
   end

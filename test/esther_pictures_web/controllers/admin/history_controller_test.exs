@@ -42,7 +42,7 @@ defmodule EstherPicturesWeb.Admin.HistoryControllerTest do
     {:ok, _} = Content.update_ensemble_member(member, %{"name" => "Wrong Name"})
 
     html = conn |> get(~p"/admin/history") |> html_response(200)
-    assert html =~ "Ensemble member"
+    assert html =~ "Cast member"
     assert html =~ "Cleo Nakamura"
 
     [version] = Content.list_versions()

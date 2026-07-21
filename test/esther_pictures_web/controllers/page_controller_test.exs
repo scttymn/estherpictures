@@ -43,6 +43,7 @@ defmodule EstherPicturesWeb.PageControllerTest do
     assert body =~ "A lifelong student of the craft."
     assert body =~ "<details"
     assert body =~ "ep-member__bio"
+    assert body =~ "ep-member__expand"
 
     # Empty bio: plain row, no accordion shell for that member.
     refute body =~ ~s(id="cast-member-#{without_bio.id}")

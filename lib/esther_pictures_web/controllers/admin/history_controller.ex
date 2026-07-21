@@ -2,6 +2,7 @@ defmodule EstherPicturesWeb.Admin.HistoryController do
   use EstherPicturesWeb, :controller
 
   alias EstherPictures.Content
+  alias EstherPicturesWeb.Admin.HistoryHTML
 
   def index(conn, _params) do
     render(conn, :index, entries: Content.list_versions_with_changes())
@@ -33,7 +34,10 @@ defmodule EstherPicturesWeb.Admin.HistoryController do
     case Content.restore_version(version, conn.assigns.current_scope.user) do
       {:ok, _} ->
         conn
-        |> put_flash(:info, "Restored #{version.item_type |> String.replace("_", " ")}.")
+        |> put_flash(
+          :info,
+          "Restored #{HistoryHTML.type_name(version.item_type) |> String.downcase()}."
+        )
         |> redirect(to: ~p"/admin/history")
 
       {:error, _changeset} ->

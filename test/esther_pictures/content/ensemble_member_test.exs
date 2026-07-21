@@ -51,4 +51,18 @@ defmodule EstherPictures.Content.EnsembleMemberTest do
       assert Content.get_ensemble_member!(member.id).bio == "Creates memorable stories."
     end
   end
+
+  describe "bio_present?/1" do
+    test "is true for non-blank bio" do
+      assert EnsembleMember.bio_present?("A lifelong student.")
+      assert EnsembleMember.bio_present?(%EnsembleMember{bio: "Hello"})
+    end
+
+    test "is false for blank bio" do
+      refute EnsembleMember.bio_present?("")
+      refute EnsembleMember.bio_present?("   ")
+      refute EnsembleMember.bio_present?(nil)
+      refute EnsembleMember.bio_present?(%EnsembleMember{bio: ""})
+    end
+  end
 end
