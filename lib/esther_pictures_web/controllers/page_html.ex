@@ -14,6 +14,10 @@ defmodule EstherPicturesWeb.PageHTML do
   @doc "Ensemble code for the Nth (1-based) member: 1 -> \"A1\"."
   def member_code(n), do: "A#{n}"
 
+  @doc "True when a cast bio should render as an expandable accordion."
+  def bio_present?(bio) when is_binary(bio), do: String.trim(bio) != ""
+  def bio_present?(_), do: false
+
   @doc """
   Classifies a reel URL into an embeddable form:
 

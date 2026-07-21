@@ -69,18 +69,19 @@ for {position, title, video_url, runtime, format, years, status} <- clips do
 end
 
 ensemble = [
-  {1, "Mara Vance", "FOUNDER / WRITER-DIRECTOR", "2019"},
-  {2, "Idris Bellê", "DIRECTOR / ACTOR", "2021"},
-  {3, "Cleo Nakamura", "WRITER / EDITOR", "2022"}
+  {1, "Mara Vance", "FOUNDER / WRITER-DIRECTOR", "2019", ""},
+  {2, "Idris Bellê", "DIRECTOR / ACTOR", "2021", ""},
+  {3, "Cleo Nakamura", "WRITER / EDITOR", "2022", ""}
 ]
 
-for {position, name, role, since_year} <- ensemble do
+for {position, name, role, since_year, bio} <- ensemble do
   {:ok, _} =
     Content.create_ensemble_member(%{
       position: position,
       name: name,
       role: role,
-      since_year: since_year
+      since_year: since_year,
+      bio: bio
     })
 end
 

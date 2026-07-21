@@ -152,12 +152,28 @@
   <%!-- ======================================================= ENSEMBLE --%>
   <section class="ep-ensemble" id="cast">
     <div class="ep-strip">03 — CAST</div>
-    <div :for={{m, i} <- Enum.with_index(@data.ensemble, 1)} class="ep-member">
-      <span class="ep-member__code">{member_code(i)}</span>
-      <span class="ep-member__name">{m.name}</span>
-      <span class="ep-member__role">{m.role}</span>
-      <span class="ep-member__since">SINCE {m.since_year}</span>
-    </div>
+    <%= for {m, i} <- Enum.with_index(@data.ensemble, 1) do %>
+      <%= if bio_present?(m.bio) do %>
+        <details class="ep-member" id={"cast-member-#{m.id}"}>
+          <summary class="ep-member__row">
+            <span class="ep-member__code">{member_code(i)}</span>
+            <span class="ep-member__name">{m.name}</span>
+            <span class="ep-member__role">{m.role}</span>
+            <span class="ep-member__since">SINCE {m.since_year}</span>
+          </summary>
+          <div class="ep-member__bio">{m.bio}</div>
+        </details>
+      <% else %>
+        <div class="ep-member">
+          <div class="ep-member__row">
+            <span class="ep-member__code">{member_code(i)}</span>
+            <span class="ep-member__name">{m.name}</span>
+            <span class="ep-member__role">{m.role}</span>
+            <span class="ep-member__since">SINCE {m.since_year}</span>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
   </section>
 
   <%!-- ======================================================== CONTACT --%>
@@ -211,6 +227,21 @@
     nav.querySelectorAll(".ep-nav__links a").forEach(function (link) {
       link.addEventListener("click", function () {
         setOpen(false);
+      });
+    });
+  })();
+
+  // Cast: only one bio accordion open at a time.
+  (function () {
+    var members = document.querySelectorAll(".ep-ensemble details.ep-member");
+    if (!members.length) return;
+
+    members.forEach(function (panel) {
+      panel.addEventListener("toggle", function () {
+        if (!panel.open) return;
+        members.forEach(function (other) {
+          if (other !== panel) other.open = false;
+        });
       });
     });
   })();

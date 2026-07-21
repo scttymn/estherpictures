@@ -22,6 +22,11 @@ defmodule EstherPicturesWeb.Admin.EnsembleMemberHTML do
       <.input field={f[:name]} label="Name" required />
       <.input field={f[:role]} label="Role (e.g. DIRECTOR / ACTOR)" />
       <.input field={f[:since_year]} label="Since year (e.g. 2021)" />
+      <.input
+        field={f[:bio]}
+        type="textarea"
+        label="Bio (optional — shown when a visitor expands the cast row)"
+      />
       <div class="flex gap-3">
         <.button class="btn btn-primary">{@submit_label}</.button>
         <.link href={~p"/admin/ensemble"} class="btn btn-ghost">Cancel</.link>
