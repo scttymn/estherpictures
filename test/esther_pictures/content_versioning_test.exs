@@ -125,8 +125,10 @@ defmodule EstherPictures.ContentVersioningTest do
   describe "pruning and thumbnail GC" do
     setup do
       root = Application.get_env(:esther_pictures, Uploads)[:root]
+      # Empty every upload folder the sweep reads, not only clips: a file left
+      # in cast/ by another test is an orphan too, and would be counted here.
+      for sub <- ["clips", "cast"], do: File.rm_rf!(Path.join(root, sub))
       dir = Path.join(root, "clips")
-      File.rm_rf!(dir)
       File.mkdir_p!(dir)
       %{dir: dir}
     end

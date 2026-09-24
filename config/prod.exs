@@ -6,7 +6,11 @@ import Config
 # which you should run after static files are built and
 # before starting your production server.
 config :esther_pictures, EstherPicturesWeb.Endpoint,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  # LiveView's websocket accepts both names the site is served on. Host only
+  # ("//"): TLS ends at Cloudflare, so the app sees http on its own port while
+  # browsers send https origins (check_origin: :conn would refuse them all).
+  check_origin: ["//estherpictures.com", "//estherpictures.svnmns.com"]
 
 # User uploads live on the VM's persistent data volume, outside the release
 # directory, so they survive deploys. The deploy setup creates this path.

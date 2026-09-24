@@ -15,6 +15,10 @@ defmodule EstherPicturesWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  # /up answers 200 on any host, first: Houston's health check before it
+  # switches traffic to a new version.
+  plug EstherPicturesWeb.Plugs.Health
+
   # Redirect www.* to the bare apex host (canonical URL) before anything else.
   plug EstherPicturesWeb.Plugs.CanonicalHost
 

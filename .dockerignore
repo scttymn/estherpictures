@@ -25,7 +25,7 @@ esther_pictures-*.tar
 *.pem
 
 # Tests & docs (not needed in image)
-test
+# test/ is in the image for houston test (the test stage); production copies only priv, lib, assets and rel.
 
 # Generated assets (rebuilt in Docker)
 priv/static/assets
@@ -48,3 +48,4 @@ deploy
 Dockerfile.builder
 README.md
 AGENTS.md
+.houston
