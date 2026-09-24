@@ -54,7 +54,7 @@ RUN mix compile \
 # -----------------------------------------------------------------------------
 # Run
 # -----------------------------------------------------------------------------
-FROM ${RUNNER_IMAGE}
+FROM ${RUNNER_IMAGE} AS production
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
@@ -87,3 +87,43 @@ EXPOSE 4000
 CMD ["/opt/estherpictures/bin/docker-entrypoint"]
 
 # Coolify auto-deploy webhook verified
+
+# Houston builds dev (houston dev), test (houston test) and production
+# (deploys). Plain `docker build` builds the last stage; pass --target
+# production for the production image.
+
+# -----------------------------------------------------------------------------
+# Dev: the builder's toolchain, plus inotify-tools for live reload. Compiled
+# dependencies live outside the mounted folder (MIX_DEPS_PATH, MIX_BUILD_ROOT).
+# -----------------------------------------------------------------------------
+FROM ${BUILDER_IMAGE} AS dev
+
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends \
+       build-essential git curl ca-certificates gnupg inotify-tools \
+  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y --no-install-recommends nodejs \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN mix local.hex --force && mix local.rebar --force
+
+ENV MIX_ENV=dev \
+    MIX_DEPS_PATH=/mix/deps \
+    MIX_BUILD_ROOT=/mix/_build
+
+COPY mix.exs mix.lock ./
+COPY config config
+RUN mix deps.get && mix deps.compile
+
+CMD ["sh", "-c", "mix ecto.create --quiet && mix ecto.migrate && exec mix phx.server"]
+
+# -----------------------------------------------------------------------------
+# Test: the app's code on the dev toolchain (houston test runs mix test).
+# -----------------------------------------------------------------------------
+FROM dev AS test
+
+ENV MIX_ENV=test
+COPY . .
+RUN mix deps.get && mix compile
