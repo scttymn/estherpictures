@@ -19,6 +19,9 @@ volumes:
 
 x-houston:
   health: /up
+  # Served here and at estherpictures.svnmns.com; www redirects to the apex
+  # (CanonicalHost). Houston makes both CNAMEs to its tunnel.
+  domains: [estherpictures.com, www.estherpictures.com]
   commands:
     console:
       dev: iex -S mix
