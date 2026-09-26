@@ -14,6 +14,7 @@ non-developers edit all the site's content.
 ```bash
 mix setup            # installs deps, creates + migrates the DB, seeds content, builds assets
 mix phx.server       # http://localhost:4000
+houston dev          # or in Docker: http://estherpictures.localhost (another branch: <branch>.estherpictures.localhost)
 ```
 
 `mix setup` runs the seeds, which populate the homepage with the launch copy.

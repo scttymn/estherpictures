@@ -3,7 +3,7 @@ name: estherpictures
 services:
   app:
     build: { context: ., target: dev }
-    ports: ["127.0.0.1:4001:4000"] # this machine only (4000 is often taken here): in dev the folder is mounted and served
+    expose: ["4000"]               # phx.server's port; houston dev serves it at http://estherpictures.localhost
     environment:
       # Required on the server; houston test gives it a random value (long
       # enough for Phoenix). Carry Coolify's over so sessions survive the move.
