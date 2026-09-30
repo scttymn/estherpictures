@@ -90,7 +90,12 @@
   }
 
   var ytEvents = {
-    onReady: function (e) { ytApply(e.target); },
+    onReady: function (e) {
+      // Adopted after it started, it may be playing already: no change of
+      // state is coming to say so.
+      if (e.target.getPlayerState() === window.YT.PlayerState.PLAYING) playing();
+      ytApply(e.target);
+    },
     onStateChange: function (e) {
       if (e.data === window.YT.PlayerState.PLAYING) playing();
       // Belt-and-suspenders looping (loop+playlist is unreliable via the API).
