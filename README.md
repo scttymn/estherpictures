@@ -45,10 +45,11 @@ Everything on the homepage is in `/admin`:
   breaks.
 - **Craft**: the "what we do" grid, ordered by position.
 - **Clips**: the hero's filmstrip, ordered by position. Clip 01's thumbnail is
-  the hero's first picture, and its video starts, muted, a few seconds after
-  the page has painted (YouTube's player is megabytes; the page doesn't wait
-  for it). A visitor picks another clip, or turns the sound on, and it plays
-  at once. A clip is a YouTube
+  the hero's picture, and nothing plays until a visitor asks: **Play**, a tap
+  on the reel, or a clip in the filmstrip plays it with sound, and a tap
+  pauses it. (Clip 01's YouTube player loads, paused, a few seconds after the
+  page has painted, so the first tap starts it at once, sound and all, on an
+  iPhone too.) On phones and tablets the reel is the page's width, at 16:9. A clip is a YouTube
   or Vimeo link (or a video file's address), its slate stats, and a thumbnail
   (JPG, PNG, WebP or GIF, up to 5 MB): upload the still you want, as YouTube
   can't export a chosen frame.

@@ -80,15 +80,16 @@ func Settings(ctx context.Context, d *db.DB) (models.SiteSetting, error) {
 
 // posterSizes is how wide the hero's poster draws, for the browser to fetch
 // a copy that sharp: it covers the reel, so a picture wider than the reel's
-// shape is drawn wider than the reel, and cropped. A phone's reel is 62% of
-// the screen tall (site.css), so a 2:1 still there draws over twice the
-// screen's width; a wider screen's is at least 560px tall.
+// shape is drawn wider than the reel, and cropped. Stacked (1080px and
+// under), the reel is the page's width at 16:9 (site.css), so a 2:1 still
+// draws 13% wider; beside the slate it's at least 560px tall.
 func posterSizes(b storage.Blob) string {
 	shape := 16.0 / 9
 	if b.Width > 0 && b.Height > 0 {
 		shape = float64(b.Width) / float64(b.Height)
 	}
-	return fmt.Sprintf("(max-width: 1080px) max(100vw, 62vh * %.4g), max(80vw, 560px * %.4g)", shape, shape)
+	stacked := max(1, shape/(16.0/9)) * 100
+	return fmt.Sprintf("(max-width: 1080px) %.0fvw, max(80vw, 560px * %.4g)", stacked, shape)
 }
 
 // pad2 is a 1-based position as two digits: 1 is "01".

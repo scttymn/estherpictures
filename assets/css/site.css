@@ -205,6 +205,7 @@ a {
 .ep-hero__reel {
   flex: 1;
   position: relative;
+  cursor: pointer; /* a tap plays or pauses the clip */
   min-height: 560px;
   overflow: hidden;
   background: #0d0c0b;
@@ -231,9 +232,9 @@ a {
   pointer-events: none;
   container-type: size;
 }
-/* The first clip's thumbnail, over its player until the video plays (site.js
-   marks it .is-playing): the player's own loading screen, or a browser that
-   can't play it, never shows. */
+/* The first clip's thumbnail, over its player until a clip first plays
+   (site.js marks it .is-playing): the player's own loading screen, or a
+   browser that can't play it, never shows. */
 .ep-reel__poster {
   position: absolute;
   inset: 0;
@@ -410,7 +411,7 @@ a {
 }
 
 /* Sound toggle over the reel. */
-.ep-reel__sound {
+.ep-reel__play {
   position: absolute;
   right: clamp(20px, 3vw, 32px);
   bottom: 40px;
@@ -429,22 +430,22 @@ a {
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.ep-reel__sound[hidden] {
+.ep-reel__play[hidden] {
   display: none;
 }
-.ep-reel__sound:hover,
-.ep-reel__sound:focus-visible {
+.ep-reel__play:hover,
+.ep-reel__play:focus-visible {
   background: rgba(0, 0, 0, 0.6);
   border-color: var(--ink);
   outline: none;
 }
-.ep-reel__sound-dot {
+.ep-reel__play-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--muted-2);
 }
-.ep-reel__sound.is-on .ep-reel__sound-dot {
+.ep-reel__play.is-on .ep-reel__play-dot {
   background: var(--ink);
 }
 
@@ -746,12 +747,31 @@ details.ep-member:hover > .ep-member__row .ep-member__expand {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 24px 32px;
   }
+  /* Stacked, the reel is the page's width and the video's shape, not a
+     tall crop of it. */
   .ep-hero__reel {
-    min-height: 62vh;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
   }
 }
 
 @media (max-width: 760px) {
+  /* A phone's reel is short: the heading sized to it, the play button
+     up in the corner, out of the heading's way. */
+  .ep-reel__title {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    font-size: clamp(1.5rem, 7.5vw, 2.4rem);
+  }
+  .ep-reel__play {
+    top: 12px;
+    right: 12px;
+    bottom: auto;
+  }
+  .ep-reel__scrim {
+    height: 70%;
+  }
   .ep-nav {
     flex-wrap: wrap;
   }

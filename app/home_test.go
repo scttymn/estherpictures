@@ -48,8 +48,16 @@ func TestHome(t *testing.T) {
 			t.Errorf("%s: %q, want %q", sel, got, want)
 		}
 	}
-	if src, _ := page.Find("#reel-yt").Attr("src"); !strings.HasPrefix(src, "https://www.youtube-nocookie.com/embed/bFcu0Rn1d7w?") || !strings.Contains(src, "mute=1") {
-		t.Errorf("the first clip plays muted: %q", src)
+	// Nothing plays until a tap: the first clip's player is loaded paused,
+	// with sound, and a tap on Play plays it.
+	if src, _ := page.Find("#reel-yt").Attr("src"); !strings.HasPrefix(src, "https://www.youtube-nocookie.com/embed/bFcu0Rn1d7w?") || !strings.Contains(src, "autoplay=0") || !strings.Contains(src, "mute=0") {
+		t.Errorf("the first clip's player: %q", src)
+	}
+	if page.Text("#reel-play") != "PLAY" {
+		t.Errorf("the button: %q", page.Text("#reel-play"))
+	}
+	if src := page.Find(".ep-clip").First().AttrOr("data-src", ""); !strings.Contains(src, "autoplay=1") || !strings.Contains(src, "mute=0") {
+		t.Errorf("a clip, picked, plays with sound: %q", src)
 	}
 	// The player waits for the page (site.js puts it in after load), so
 	// YouTube's megabytes don't hold up the first paint.
@@ -84,8 +92,8 @@ func TestHomeWithoutClips(t *testing.T) {
 	if page.Text(".ep-reel__placeholder") != "NO CLIP SET" {
 		t.Error("no placeholder")
 	}
-	if _, hidden := page.Find("#reel-sound").Attr("hidden"); !hidden {
-		t.Error("a sound button with nothing to play")
+	if _, hidden := page.Find("#reel-play").Attr("hidden"); !hidden {
+		t.Error("a play button with nothing to play")
 	}
 }
 
@@ -121,7 +129,7 @@ func TestHomeCastAndImages(t *testing.T) {
 	}
 	poster := page.Find("#reel-player img.ep-reel__poster")
 	if poster.Length() != 1 || poster.AttrOr("fetchpriority", "") != "high" || poster.AttrOr("loading", "") != "eager" ||
-		poster.AttrOr("sizes", "") != "(max-width: 1080px) max(100vw, 62vh * 1.778), max(80vw, 560px * 1.778)" {
+		poster.AttrOr("sizes", "") != "(max-width: 1080px) 100vw, max(80vw, 560px * 1.778)" {
 		t.Errorf("the first clip's thumbnail is the hero's poster, fetched first: %v", poster.Nodes)
 	}
 	thumb := page.Find(".ep-clip").First().Find("img.ep-clip__thumb")

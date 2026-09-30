@@ -38,30 +38,39 @@
   });
 })();
 
+// The hero's clip player. Nothing plays until a visitor asks: the first
+// clip's poster shows, and a tap on Play, on the reel, or on a clip in the
+// filmstrip plays that clip with sound; a tap on Pause, or the reel again,
+// pauses it. The slate shows the picked clip's stats.
 (function () {
   var player = document.getElementById("reel-player");
   var slate = document.getElementById("reel-slate");
-  var soundBtn = document.getElementById("reel-sound");
+  var playBtn = document.getElementById("reel-play");
+  var reel = player && player.closest(".ep-hero__reel");
   var clips = Array.prototype.slice.call(document.querySelectorAll(".ep-clip"));
   if (!player || !clips.length) return;
 
   var activeEl = null;
-  var muted = true;
+  var playingNow = false;
 
   // --- YouTube IFrame Player API --------------------------------------
-  // iOS forbids autoplaying unmuted media, and swapping in a fresh iframe on
-  // unmute loses the tap gesture (the embed loads async, after the gesture
-  // expires) — so the video just shows YouTube's poster. Instead we keep one
-  // persistent player and call unMute()/playVideo() synchronously inside the
-  // tap, which iOS accepts. The first clip's server-rendered iframe carries
-  // enablejsapi=1 so the API can adopt it without a reload.
+  // iOS plays sound only when play is called inside the tap itself, on a
+  // player that's already there: a player loaded in answer to the tap
+  // starts after the tap's gone, and just shows YouTube's poster. So the
+  // first clip's player is loaded ahead, paused (its iframe in the page's
+  // <template>, with enablejsapi=1, adopted by the API), and one player is
+  // kept after that: a tap calls playVideo() or loadVideoById() on it at
+  // once.
   var ytPlayer = null;
+  var ytPlayerReady = false;
+  var ytVideo = null; // the id the player has loaded
+  var ytPending = false; // a tap came before the player was ready
   var ytReady = false;
   var ytApiLoading = false;
   var ytQueue = [];
 
   var YT_VARS = {
-    autoplay: 1, mute: 1, loop: 1, controls: 0, modestbranding: 1,
+    autoplay: 1, mute: 0, loop: 1, controls: 0, modestbranding: 1,
     rel: 0, playsinline: 1, iv_load_policy: 3, disablekb: 1, fs: 0
   };
 
@@ -83,42 +92,53 @@
     }
   }
 
-  // Apply the current mute state to a player, in-gesture on the sound tap.
-  function ytApply(p) {
-    if (muted) { p.mute(); } else { p.unMute(); }
-    p.playVideo();
-  }
-
   var ytEvents = {
     onReady: function (e) {
-      // Adopted after it started, it may be playing already: no change of
-      // state is coming to say so.
-      if (e.target.getPlayerState() === window.YT.PlayerState.PLAYING) playing();
-      ytApply(e.target);
+      ytPlayerReady = true;
+      if (ytPending) {
+        ytPending = false;
+        e.target.unMute();
+        e.target.playVideo();
+      }
     },
     onStateChange: function (e) {
-      if (e.data === window.YT.PlayerState.PLAYING) playing();
+      var S = window.YT.PlayerState;
+      if (e.data === S.PLAYING) setPlaying(true);
+      if (e.data === S.PAUSED) setPlaying(false);
       // Belt-and-suspenders looping (loop+playlist is unreliable via the API).
-      if (e.data === window.YT.PlayerState.ENDED) {
+      if (e.data === S.ENDED) {
         e.target.seekTo(0, true);
         e.target.playVideo();
       }
     }
   };
 
-  function showYouTube(id) {
-    whenYT(function () {
-      if (ytPlayer) {
+  // playYouTube plays id, inside the tap when there's a player ready.
+  function playYouTube(id) {
+    if (ytPlayer && ytPlayerReady) {
+      if (ytVideo === id) {
+        ytPlayer.unMute();
+        ytPlayer.playVideo();
+      } else {
         ytPlayer.loadVideoById({ videoId: id });
-        if (muted) { ytPlayer.mute(); } else { ytPlayer.unMute(); }
-        return;
+        ytPlayer.unMute();
+        ytVideo = id;
       }
-      // No player yet (initial clip was not YouTube): build one, keeping the
-      // youtube-nocookie host to match the server-rendered privacy choice.
-      player.innerHTML = "";
-      var host = document.createElement("div");
-      host.id = "reel-yt";
-      player.appendChild(host);
+      return;
+    }
+    if (ytPlayer && ytVideo === id) {
+      ytPending = true; // adopted, not ready yet: it plays when it is
+      return;
+    }
+    // No player for it: build one, playing (sound may wait for a second
+    // tap on iOS, as it's no longer inside this one).
+    clearPlayer();
+    var host = document.createElement("div");
+    host.id = "reel-yt";
+    player.appendChild(host);
+    ytVideo = id;
+    ytPlayerReady = false;
+    whenYT(function () {
       ytPlayer = new window.YT.Player(host, {
         host: "https://www.youtube-nocookie.com",
         videoId: id,
@@ -131,44 +151,127 @@
   function destroyYouTube() {
     if (ytPlayer) {
       try { ytPlayer.destroy(); } catch (e) {}
-      ytPlayer = null;
+    }
+    ytPlayer = null;
+    ytPlayerReady = false;
+    ytVideo = null;
+    ytPending = false;
+  }
+
+  // --- Vimeo, and video files ------------------------------------------
+  // A Vimeo clip plays from its embed (autoplay, with sound), and pauses and
+  // plays again by message (its player's postMessage API). A file is a
+  // <video>, played inside the tap.
+  function vimeo(method) {
+    var f = player.querySelector("iframe");
+    if (f && f.contentWindow) {
+      f.contentWindow.postMessage(JSON.stringify({ method: method }), "https://player.vimeo.com");
     }
   }
 
-  // --- Vimeo / uploaded-file players (unchanged iframe/element swap) ----
-  function buildMedia(kind, src) {
-    if (!src) return null;
-    if (kind === "file") {
-      var v = document.createElement("video");
+  function playVimeo(src) {
+    clearPlayer();
+    var f = document.createElement("iframe");
+    f.src = src;
+    f.title = "Clip";
+    f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+    // Vimeo's player says nothing without its API: it's playing a moment
+    // after it loads.
+    f.addEventListener("load", function () { setTimeout(function () { setPlaying(true); }, 1000); }, { once: true });
+    player.appendChild(f);
+  }
+
+  function videoEl() {
+    return player.querySelector("video");
+  }
+
+  function playFile(src) {
+    var v = videoEl();
+    if (!v || v.getAttribute("src") !== src) {
+      clearPlayer();
+      v = document.createElement("video");
       v.className = "ep-reel__media";
       v.src = src;
-      v.autoplay = true;
       v.loop = true;
       v.playsInline = true;
-      v.muted = muted;
-      return v;
+      player.appendChild(v);
     }
-    if (kind === "vimeo") {
-      var f = document.createElement("iframe");
-      f.src = src;
-      f.title = "Clip";
-      f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
-      return f;
-    }
-    return null;
+    watchVideo(v);
+    v.muted = false;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { setPlaying(false); });
   }
 
-  function render(clip) {
+  function watchVideo(v) {
+    if (v.dataset.watched) return;
+    v.dataset.watched = "1";
+    v.addEventListener("playing", function () { setPlaying(true); });
+    v.addEventListener("pause", function () { setPlaying(false); });
+  }
+
+  // clearPlayer removes the player, keeping the poster.
+  function clearPlayer() {
+    Array.prototype.slice.call(player.children).forEach(function (el) {
+      if (!el.querySelector(".ep-reel__poster") && !el.classList.contains("ep-reel__poster")) el.remove();
+    });
+  }
+
+  // --- Playing and pausing -----------------------------------------------
+  function play(clip) {
     var kind = clip.dataset.kind;
     if (kind === "youtube") {
-      showYouTube(clip.dataset.ytId);
+      playYouTube(clip.dataset.ytId);
       return;
     }
     destroyYouTube();
-    var src = muted ? clip.dataset.srcMuted : clip.dataset.srcUnmuted;
-    player.innerHTML = "";
-    var el = buildMedia(kind, src);
-    if (el) player.appendChild(el);
+    if (kind === "vimeo") playVimeo(clip.dataset.src);
+    if (kind === "file") playFile(clip.dataset.src);
+  }
+
+  function pause() {
+    var kind = activeEl && activeEl.dataset.kind;
+    if (kind === "youtube" && ytPlayer && ytPlayerReady) ytPlayer.pauseVideo();
+    if (kind === "vimeo") {
+      vimeo("pause");
+      setPlaying(false);
+    }
+    if (kind === "file" && videoEl()) videoEl().pause();
+  }
+
+  function resume() {
+    if (activeEl.dataset.kind === "vimeo" && player.querySelector("iframe")) {
+      vimeo("play");
+      setPlaying(true);
+      return;
+    }
+    play(activeEl);
+  }
+
+  // setPlaying says whether the video is playing: the poster fades for good
+  // the first time it is (a paused video keeps its frame), and the button
+  // says what a tap does next.
+  function setPlaying(on) {
+    playingNow = on;
+    if (on) player.classList.add("is-playing");
+    syncButton();
+  }
+
+  function syncButton() {
+    if (!playBtn) return;
+    playBtn.hidden = !activeEl || activeEl.dataset.kind === "none";
+    playBtn.setAttribute("aria-pressed", String(playingNow));
+    playBtn.classList.toggle("is-on", playingNow);
+    var label = playBtn.querySelector(".ep-reel__play-label");
+    if (label) label.textContent = playingNow ? "PAUSE" : "PLAY";
+  }
+
+  function toggle() {
+    if (!activeEl || activeEl.dataset.kind === "none") return;
+    if (playingNow) {
+      pause();
+    } else {
+      resume();
+    }
   }
 
   function updateSlate(clip) {
@@ -184,19 +287,7 @@
     set("status", clip.dataset.status, true);
   }
 
-  function syncSound() {
-    if (!soundBtn) return;
-    var hasVideo = activeEl && activeEl.dataset.kind !== "none";
-    soundBtn.hidden = !hasVideo;
-    soundBtn.setAttribute("aria-pressed", String(!muted));
-    var label = soundBtn.querySelector(".ep-reel__sound-label");
-    if (label) label.textContent = muted ? "SOUND OFF" : "SOUND ON";
-    soundBtn.classList.toggle("is-on", !muted);
-  }
-
-  function activate(clip, opts) {
-    opts = opts || {};
-    if (opts.resetMute) muted = true;
+  function activate(clip) {
     if (activeEl) {
       activeEl.classList.remove("is-active");
       activeEl.setAttribute("aria-pressed", "false");
@@ -205,81 +296,72 @@
     clip.classList.add("is-active");
     clip.setAttribute("aria-pressed", "true");
     updateSlate(clip);
-    if (opts.render) render(clip);
-    syncSound();
+    syncButton();
   }
 
   clips.forEach(function (clip) {
     clip.addEventListener("click", function () {
-      activate(clip, { render: true, resetMute: true });
+      if (clip === activeEl) {
+        toggle();
+        return;
+      }
+      if (playingNow) pause();
+      playingNow = false;
+      activate(clip);
+      if (clip.dataset.kind === "none") {
+        destroyYouTube();
+        clearPlayer();
+        player.classList.remove("is-playing");
+        return;
+      }
+      play(clip);
     });
   });
 
-  if (soundBtn) {
-    soundBtn.addEventListener("click", function () {
-      muted = !muted;
-      if (activeEl) {
-        // For YouTube, drive the live player in-gesture (iOS needs the
-        // unmute/play call to happen synchronously inside the tap). Other
-        // kinds rebuild their element as before.
-        if (activeEl.dataset.kind === "youtube" && ytPlayer) {
-          ytApply(ytPlayer);
-        } else {
-          render(activeEl);
-        }
-      }
-      syncSound();
+  if (playBtn) playBtn.addEventListener("click", toggle);
+  if (reel) {
+    reel.addEventListener("click", function (e) {
+      if (e.target.closest("#reel-play")) return;
+      toggle();
     });
   }
 
-  // The first clip is active. Its player (server-rendered, muted, in a
-  // <template>) goes in once the page has loaded, over the clip's
-  // thumbnail: YouTube's megabytes wait for the page, not the other way
-  // round. A YouTube player is then adopted into the Player API, so the
-  // first unmute tap can drive it synchronously. A pick or the sound
-  // before then draws its own player, and this one never goes in.
-  activate(clips[0], { render: false, resetMute: true });
+  // The first clip is active. Its player (in the page's <template>) goes in,
+  // paused, once the page has loaded and painted, and a while after, so
+  // YouTube's megabytes wait for the page, not the other way round; a
+  // YouTube player is adopted into its API, ready for the first tap.
+  activate(clips[0]);
   var embed = document.getElementById("reel-embed");
 
-  function startFirst() {
+  function loadFirst() {
     if (!embed || !embed.isConnected) return;
     player.appendChild(embed.content.cloneNode(true));
     embed.remove();
-    // The poster goes when the video plays: YouTube says so through its
-    // API (onStateChange), a file through its playing event; a Vimeo
-    // background player starts cleanly a moment after it loads.
-    var video = player.querySelector("video");
-    if (video) video.addEventListener("playing", playing, { once: true });
-    if (clips[0].dataset.kind === "vimeo") {
-      player.querySelector("iframe").addEventListener("load", function () { setTimeout(playing, 1000); }, { once: true });
-    }
+    var v = videoEl();
+    if (v) watchVideo(v);
     if (clips[0].dataset.kind === "youtube") {
+      ytVideo = clips[0].dataset.ytId;
       whenYT(function () {
-        if (!ytPlayer) {
+        if (!ytPlayer && document.getElementById("reel-yt")) {
           ytPlayer = new window.YT.Player("reel-yt", { events: ytEvents });
         }
       });
     }
   }
 
-  // Once the page has loaded (its poster too) and painted: a frame's
-  // callback runs before that frame paints, and a task queued from it runs
-  // after. On a slow phone the first paint can come well after load.
-  var REEL_DELAY = 3000;
+  var LOAD_DELAY = 3000;
 
-  function playing() {
-    player.classList.add("is-playing");
-  }
-
+  // A frame's callback runs before that frame paints; a task queued from it
+  // runs after. On a slow phone the first paint can come well after load.
   function afterPaint() {
     requestAnimationFrame(function () {
       setTimeout(function () {
         if ("requestIdleCallback" in window) {
-          requestIdleCallback(startFirst, { timeout: 2000 });
+          requestIdleCallback(loadFirst, { timeout: 2000 });
         } else {
-          startFirst();
+          loadFirst();
         }
-      }, REEL_DELAY);
+      }, LOAD_DELAY);
     });
   }
 

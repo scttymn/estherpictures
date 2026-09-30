@@ -10,9 +10,9 @@ import (
 	"github.com/scttymn/estherpictures/assets"
 )
 
-// page is the site: direction 1B, Frame Index. The first clip plays muted
-// in the hero; site.js plays another when it's picked from the filmstrip,
-// and turns the sound on.
+// page is the site: direction 1B, Frame Index. The hero shows the first
+// clip's poster; a tap on Play, the reel or a clip in the filmstrip plays
+// it, with sound (site.js).
 templ page(p Page) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -193,15 +193,13 @@ templ hero(p Page) {
 						@p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: posterSizes(b), Priority: true})
 					}
 				}
-				if player.Kind != "none" {
+				if player.Cue != "" {
 					<template id="reel-embed">
 						switch player.Kind {
 							case "youtube":
-								<iframe id="reel-yt" src={ player.Muted } title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
-							case "vimeo":
-								<iframe src={ player.Muted } title="Clip" allow="autoplay; picture-in-picture"></iframe>
+								<iframe id="reel-yt" src={ player.Cue } title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
 							case "file":
-								<video class="ep-reel__media" src={ player.Muted } autoplay muted loop playsinline></video>
+								<video class="ep-reel__media" src={ player.Cue } preload="metadata" loop playsinline></video>
 						}
 					</template>
 				}
@@ -211,9 +209,9 @@ templ hero(p Page) {
 			}
 			<div class="ep-reel__scrim"></div>
 			<h1 class="ep-reel__title">{ p.Settings.HeroHeading }</h1>
-			<button type="button" id="reel-sound" class="ep-reel__sound" aria-pressed="false" hidden?={ player.Kind == "none" }>
-				<span class="ep-reel__sound-dot" aria-hidden="true"></span>
-				<span class="ep-reel__sound-label">SOUND OFF</span>
+			<button type="button" id="reel-play" class="ep-reel__play" aria-pressed="false" hidden?={ player.Kind == "none" }>
+				<span class="ep-reel__play-dot" aria-hidden="true"></span>
+				<span class="ep-reel__play-label">PLAY</span>
 			</button>
 		</div>
 	</section>
@@ -230,8 +228,7 @@ templ filmstripClip(p Page, i int, clip models.Clip) {
 		if player.YouTubeID != "" {
 			data-yt-id={ player.YouTubeID }
 		}
-		data-src-muted={ player.Muted }
-		data-src-unmuted={ player.Unmuted }
+		data-src={ player.Src }
 		data-title={ clip.Title }
 		data-runtime={ clip.Runtime }
 		data-format={ clip.Format }
