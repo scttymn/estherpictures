@@ -44,8 +44,11 @@ Everything on the homepage is in `/admin`:
   block, the social links, the footer. Multi-line fields keep their line
   breaks.
 - **Craft**: the "what we do" grid, ordered by position.
-- **Clips**: the hero's filmstrip, ordered by position. Clip 01 plays muted on
-  load; a visitor picks another, or turns the sound on. A clip is a YouTube
+- **Clips**: the hero's filmstrip, ordered by position. Clip 01's thumbnail is
+  the hero's first picture, and its video starts, muted, a few seconds after
+  the page has painted (YouTube's player is megabytes; the page doesn't wait
+  for it). A visitor picks another clip, or turns the sound on, and it plays
+  at once. A clip is a YouTube
   or Vimeo link (or a video file's address), its slate stats, and a thumbnail
   (JPG, PNG, WebP or GIF, up to 5 MB): upload the still you want, as YouTube
   can't export a chosen frame.

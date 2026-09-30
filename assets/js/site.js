@@ -226,15 +226,48 @@
     });
   }
 
-  // First clip is active and already server-rendered muted. If it's a
-  // YouTube clip, adopt that iframe into the Player API now so the first
-  // unmute tap can drive it synchronously.
+  // The first clip is active. Its player (server-rendered, muted, in a
+  // <template>) goes in once the page has loaded, over the clip's
+  // thumbnail: YouTube's megabytes wait for the page, not the other way
+  // round. A YouTube player is then adopted into the Player API, so the
+  // first unmute tap can drive it synchronously. A pick or the sound
+  // before then draws its own player, and this one never goes in.
   activate(clips[0], { render: false, resetMute: true });
-  if (clips[0].dataset.kind === "youtube") {
-    whenYT(function () {
-      if (!ytPlayer) {
-        ytPlayer = new window.YT.Player("reel-yt", { events: ytEvents });
-      }
+  var embed = document.getElementById("reel-embed");
+
+  function startFirst() {
+    if (!embed || !embed.isConnected) return;
+    player.appendChild(embed.content.cloneNode(true));
+    embed.remove();
+    if (clips[0].dataset.kind === "youtube") {
+      whenYT(function () {
+        if (!ytPlayer) {
+          ytPlayer = new window.YT.Player("reel-yt", { events: ytEvents });
+        }
+      });
+    }
+  }
+
+  // Once the page has loaded (its poster too) and painted: a frame's
+  // callback runs before that frame paints, and a task queued from it runs
+  // after. On a slow phone the first paint can come well after load.
+  var REEL_DELAY = 3000;
+
+  function afterPaint() {
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(startFirst, { timeout: 2000 });
+        } else {
+          startFirst();
+        }
+      }, REEL_DELAY);
     });
+  }
+
+  if (document.readyState === "complete") {
+    afterPaint();
+  } else {
+    window.addEventListener("load", afterPaint);
   }
 })();

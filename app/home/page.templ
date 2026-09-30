@@ -188,13 +188,22 @@ templ hero(p Page) {
 			<div class="ep-reel__glow"></div>
 			<div class="ep-reel__grain"></div>
 			<div id="reel-player" class="ep-reel__embed">
-				switch player.Kind {
-					case "youtube":
-						<iframe id="reel-yt" src={ player.Muted } title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
-					case "vimeo":
-						<iframe src={ player.Muted } title="Clip" allow="autoplay; picture-in-picture"></iframe>
-					case "file":
-						<video class="ep-reel__media" src={ player.Muted } autoplay muted loop playsinline></video>
+				if active != nil {
+					if b, ok := p.Thumbnails[active.ID]; ok {
+						@p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: "(max-width: 1080px) 100vw, 80vw", Priority: true})
+					}
+				}
+				if player.Kind != "none" {
+					<template id="reel-embed">
+						switch player.Kind {
+							case "youtube":
+								<iframe id="reel-yt" src={ player.Muted } title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+							case "vimeo":
+								<iframe src={ player.Muted } title="Clip" allow="autoplay; picture-in-picture"></iframe>
+							case "file":
+								<video class="ep-reel__media" src={ player.Muted } autoplay muted loop playsinline></video>
+						}
+					</template>
 				}
 			</div>
 			if player.Kind == "none" {

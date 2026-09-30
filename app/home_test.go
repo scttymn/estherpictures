@@ -51,6 +51,14 @@ func TestHome(t *testing.T) {
 	if src, _ := page.Find("#reel-yt").Attr("src"); !strings.HasPrefix(src, "https://www.youtube-nocookie.com/embed/bFcu0Rn1d7w?") || !strings.Contains(src, "mute=1") {
 		t.Errorf("the first clip plays muted: %q", src)
 	}
+	// The player waits for the page (site.js puts it in after load), so
+	// YouTube's megabytes don't hold up the first paint.
+	if page.Find("template#reel-embed #reel-yt").Length() != 1 || page.Find("#reel-player > iframe").Length() != 0 {
+		t.Error("the player is in the page from the start")
+	}
+	if page.Find(".ep-reel__poster").Length() != 0 {
+		t.Error("a poster, with no thumbnail")
+	}
 	clip := page.Find(".ep-clip").First()
 	if id, _ := clip.Attr("data-yt-id"); id != "bFcu0Rn1d7w" {
 		t.Errorf("data-yt-id %q", id)
@@ -110,6 +118,10 @@ func TestHomeCastAndImages(t *testing.T) {
 	}
 	if page.Find("img.ep-member__headshot").Length() != 1 {
 		t.Error("one headshot")
+	}
+	poster := page.Find("#reel-player img.ep-reel__poster")
+	if poster.Length() != 1 || poster.AttrOr("fetchpriority", "") != "high" || poster.AttrOr("loading", "") != "eager" {
+		t.Errorf("the first clip's thumbnail is the hero's poster, fetched first: %v", poster.Nodes)
 	}
 	thumb := page.Find(".ep-clip").First().Find("img.ep-clip__thumb")
 	if thumb.Length() != 1 || thumb.AttrOr("width", "") != "640" || !strings.Contains(thumb.AttrOr("srcset", ""), "320w") {
