@@ -1,0 +1,179 @@
+package admin
+
+import (
+	"strings"
+
+	"github.com/scttymn/estherpictures/assets"
+)
+
+templ head(title string) {
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta name="robots" content="noindex"/>
+	<title>{ title } · Admin</title>
+	@assets.Admin.Tag()
+	@assets.ImportMap.Tag()
+}
+
+templ brand(href string) {
+	<a href={ templ.SafeURL(href) } class="brand">ESTHER PICTURES <span>· ADMIN</span></a>
+}
+
+// Layout is the admin's page: its bar of sections, then the page.
+templ Layout(p Page) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			@head(p.Title)
+		</head>
+		<body>
+			<header class="topbar">
+				<div class="topbar__inner">
+					@brand("/admin")
+					<nav class="topnav">
+						<a href="/admin" class="btn btn--ghost btn--sm">Dashboard</a>
+						<a href="/admin/settings" class="btn btn--ghost btn--sm">Site copy</a>
+						<a href="/admin/craft" class="btn btn--ghost btn--sm">Craft</a>
+						<a href="/admin/clips" class="btn btn--ghost btn--sm">Clips</a>
+						<a href="/admin/ensemble" class="btn btn--ghost btn--sm">Cast</a>
+						if p.User.IsAdmin() {
+							<a href="/admin/history" class="btn btn--ghost btn--sm">History</a>
+							<a href="/admin/users" class="btn btn--ghost btn--sm">Users</a>
+						}
+					</nav>
+					<div class="topbar__end">
+						<a href="/" target="_blank" rel="noopener" class="topbar__site">View site ↗</a>
+						<span class="topbar__email">{ p.User.EmailAddress }</span>
+						<form method="post" action="/users/log-out" class="inline">
+							<input type="hidden" name="_method" value="delete"/>
+							<button type="submit" class="btn btn--ghost btn--sm">Log out</button>
+						</form>
+					</div>
+				</div>
+			</header>
+			<main class="page">
+				{ children... }
+			</main>
+			@flash(p)
+		</body>
+	</html>
+}
+
+// AuthLayout is the sign-in pages' plain frame: no sections, as those
+// pages mustn't show or suggest the admin.
+templ AuthLayout(p Page) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			@head(p.Title)
+		</head>
+		<body>
+			<header class="topbar topbar--narrow">
+				<div class="topbar__inner">
+					@brand("/")
+				</div>
+			</header>
+			<main class="page page--auth">
+				<div class="narrow stack">
+					{ children... }
+				</div>
+			</main>
+			@flash(p)
+		</body>
+	</html>
+}
+
+templ flash(p Page) {
+	if p.Notice != "" {
+		<div class="flash flash--notice" role="status" data-controller="flash">
+			<p>{ p.Notice }</p>
+			<button type="button" aria-label="close" data-action="flash#close">×</button>
+		</div>
+	}
+	if p.Alert != "" {
+		<div class="flash flash--alert" role="alert" data-controller="flash">
+			<p>{ p.Alert }</p>
+			<button type="button" aria-label="close" data-action="flash#close">×</button>
+		</div>
+	}
+}
+
+// Head is a page's heading, a line under it, and its actions (children).
+templ Head(title, subtitle string) {
+	<header class="page-head">
+		<div>
+			<h1>{ title }</h1>
+			if subtitle != "" {
+				<p>{ subtitle }</p>
+			}
+		</div>
+		<div class="page-head__actions">
+			{ children... }
+		</div>
+	</header>
+}
+
+// Errors are what's wrong with a form sent back.
+templ Errors(errs []string) {
+	if len(errs) > 0 {
+		<div class="errors" role="alert">
+			<strong>Please fix the following:</strong>
+			<ul>
+				for _, e := range errs {
+					<li>{ e }</li>
+				}
+			</ul>
+		</div>
+	}
+}
+
+// Input is a labelled text input: typ is its type ("text", "email",
+// "number", "password"), required when required.
+templ Input(param, name, label, typ, value string, required bool) {
+	<label class="field">
+		<span class="field__label">{ label }</span>
+		<input class="input" type={ typ } id={ param + "_" + name } name={ param + "[" + name + "]" } value={ value } required?={ required }/>
+	</label>
+}
+
+// Text is a labelled text input.
+templ Text(param, name, label, value string) {
+	@Input(param, name, label, "text", value, false)
+}
+
+// Textarea is a labelled textarea, which keeps its line breaks.
+templ Textarea(param, name, label, value string) {
+	<label class="field">
+		<span class="field__label">{ label }</span>
+		<textarea class="textarea" id={ param + "_" + name } name={ param + "[" + name + "]" }>{ value }</textarea>
+	</label>
+}
+
+// Delete is a button that deletes (or does) something, once it's
+// confirmed: a form of its own, sent as DELETE (or POST, for method post).
+templ Button(action, method, label, confirm, class string) {
+	<form method="post" action={ templ.SafeURL(action) } class="inline" data-turbo-confirm={ confirm }>
+		if strings.ToLower(method) != "post" {
+			<input type="hidden" name="_method" value={ strings.ToLower(method) }/>
+		}
+		<button type="submit" class={ class }>{ label }</button>
+	</form>
+}
+
+// Login is the sign-in page.
+templ Login(p Page, action string) {
+	@AuthLayout(p) {
+		@Head("Log in", "Editor & administrator access to Esther Pictures.")
+		<form method="post" action={ templ.SafeURL(action) } class="form">
+			<label class="field">
+				<span class="field__label">Email</span>
+				<input class="input" type="email" name="email_address" autocomplete="username" required autofocus/>
+			</label>
+			<label class="field">
+				<span class="field__label">Password</span>
+				<input class="input" type="password" name="password" autocomplete="current-password" required maxlength="72"/>
+			</label>
+			<button type="submit" class="btn btn--primary btn--block">Log in <span aria-hidden="true">→</span></button>
+		</form>
+	}
+}

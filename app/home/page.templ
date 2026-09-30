@@ -1,0 +1,251 @@
+package home
+
+import (
+	"strings"
+
+	"github.com/scttymn/gantry/images"
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/models"
+	"github.com/scttymn/estherpictures/assets"
+)
+
+// page is the site: direction 1B, Frame Index. The first clip plays muted
+// in the hero; site.js plays another when it's picked from the filmstrip,
+// and turns the sound on.
+templ page(p Page) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>Esther Pictures</title>
+			@assets.Site.Tag()
+			<script type="module" src={ assets.Path("site.js") }></script>
+		</head>
+		<body>
+			@site(p)
+		</body>
+	</html>
+}
+
+templ site(p Page) {
+	{{ s := p.Settings }}
+	<main class="ep">
+		<nav class="ep-nav" id="site-nav" aria-label="Primary">
+			<a href="/" class="ep-nav__brand" aria-label={ s.CollectiveName + " — home" }>
+				<span>{ s.CollectiveName }</span>
+			</a>
+			<button type="button" id="site-nav-toggle" class="ep-nav__toggle" aria-expanded="false" aria-controls="site-nav-links" aria-label="Toggle menu">
+				<svg class="ep-nav__chev" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+					<path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+			</button>
+			<div class="ep-nav__tag">{ s.Tagline }</div>
+			<div class="ep-nav__links" id="site-nav-links">
+				<a href="#clips">01 CLIPS</a>
+				<a href="#craft">02 CRAFT</a>
+				<a href="#cast">03 CAST</a>
+				<a href="#contact">04 CONTACT</a>
+			</div>
+		</nav>
+		@hero(p)
+		<section class="ep-filmstrip" aria-label="Clips — click to play">
+			for i, clip := range p.Clips {
+				@filmstripClip(p, i+1, clip)
+			}
+		</section>
+		<section class="ep-craft" id="craft">
+			<div class="ep-strip">02 — WHAT WE DO</div>
+			<div class="ep-craft__grid">
+				for i, svc := range p.Craft {
+					<div class="ep-craft__cell">
+						<div class="ep-craft__num">{ pad2(i + 1) }</div>
+						<h3 class="ep-craft__title">{ svc.Title }</h3>
+						<p class="ep-craft__desc">{ svc.Description }</p>
+					</div>
+				}
+			</div>
+		</section>
+		<section class="ep-ensemble" id="cast">
+			<div class="ep-strip">03 — CAST</div>
+			for i, m := range p.Cast {
+				if m.HasBio() {
+					<details class="ep-member" id={ "cast-member-" + web.IDText(m.ID) }>
+						<summary class="ep-member__row">
+							@memberRow(i+1, m)
+							<span class="ep-member__expand">
+								<span class="ep-member__expand-label ep-member__expand-label--show">Show Bio</span>
+								<span class="ep-member__expand-label ep-member__expand-label--hide">Hide Bio</span>
+								<svg class="ep-member__chev" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+									<path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+								</svg>
+							</span>
+						</summary>
+						<div class="ep-member__panel">
+							if b, ok := p.Headshots[m.ID]; ok {
+								@p.Storage.Img(b, images.Img{Alt: m.Name, Class: "ep-member__headshot", Sizes: "(max-width: 760px) 96px, 120px"})
+							}
+							<div class="ep-member__bio">{ m.Bio }</div>
+						</div>
+					</details>
+				} else {
+					<div class="ep-member">
+						<div class="ep-member__row">
+							@memberRow(i+1, m)
+						</div>
+					</div>
+				}
+			}
+		</section>
+		<section class="ep-contact" id="contact">
+			<div class="ep-contact__main">
+				<div class="ep-contact__label">04 — CONTACT</div>
+				<h2 class="ep-contact__heading">{ s.ContactHeading }</h2>
+				<a class="ep-btn" href={ templ.SafeURL("mailto:" + s.Email) }>Start a conversation →</a>
+			</div>
+			<div class="ep-contact__aside">
+				<dl>
+					<div>
+						<dt>EMAIL</dt>
+						<dd><a href={ templ.SafeURL("mailto:" + s.Email) }>{ s.Email }</a></dd>
+					</div>
+					<div>
+						<dt>STUDIO</dt>
+						<dd>{ s.StudioLocations }</dd>
+					</div>
+					<div>
+						<dt>FOLLOW</dt>
+						<dd>
+							<a href={ templ.URL(s.InstagramUrl) }>Instagram ↗</a>
+							· <a href={ templ.URL(s.LetterboxdUrl) }>Letterboxd ↗</a>
+						</dd>
+					</div>
+				</dl>
+			</div>
+		</section>
+		<footer class="ep-footer">{ s.FooterText }</footer>
+	</main>
+}
+
+templ hero(p Page) {
+	{{
+		var active *models.Clip
+		player := Player{Kind: "none"}
+		if len(p.Clips) > 0 {
+			active = &p.Clips[0]
+			player = PlayerFor(active.VideoUrl)
+		}
+	}}
+	<section class="ep-hero" id="clips">
+		<div class="ep-hero__slate">
+			<div class="ep-hero__slate-title">SLATE</div>
+			<dl class="ep-slate-list" id="reel-slate">
+				<div>
+					<dt>TITLE</dt>
+					<dd class="is-title" data-slot="title">
+						if active != nil {
+							{ active.Title }
+						}
+					</dd>
+				</div>
+				<div>
+					<dt>RUNTIME</dt>
+					<dd data-slot="runtime">
+						if active != nil {
+							{ active.Runtime }
+						}
+					</dd>
+				</div>
+				<div>
+					<dt>FORMAT</dt>
+					<dd data-slot="format">
+						if active != nil {
+							{ active.Format }
+						}
+					</dd>
+				</div>
+				<div>
+					<dt>YEARS</dt>
+					<dd data-slot="years">
+						if active != nil {
+							{ active.Years }
+						}
+					</dd>
+				</div>
+				<div>
+					<dt>STATUS</dt>
+					<dd class="is-status" data-slot="status">
+						if active != nil && active.Status != "" {
+							{ "● " + active.Status }
+						}
+					</dd>
+				</div>
+			</dl>
+		</div>
+		<div class="ep-hero__reel">
+			<div class="ep-reel__texture"></div>
+			<div class="ep-reel__glow"></div>
+			<div class="ep-reel__grain"></div>
+			<div id="reel-player" class="ep-reel__embed">
+				switch player.Kind {
+					case "youtube":
+						<iframe id="reel-yt" src={ player.Muted } title="Clip" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+					case "vimeo":
+						<iframe src={ player.Muted } title="Clip" allow="autoplay; picture-in-picture"></iframe>
+					case "file":
+						<video class="ep-reel__media" src={ player.Muted } autoplay muted loop playsinline></video>
+				}
+			</div>
+			if player.Kind == "none" {
+				<div class="ep-reel__placeholder">NO CLIP SET</div>
+			}
+			<div class="ep-reel__scrim"></div>
+			<h1 class="ep-reel__title">{ p.Settings.HeroHeading }</h1>
+			<button type="button" id="reel-sound" class="ep-reel__sound" aria-pressed="false" hidden?={ player.Kind == "none" }>
+				<span class="ep-reel__sound-dot" aria-hidden="true"></span>
+				<span class="ep-reel__sound-label">SOUND OFF</span>
+			</button>
+		</div>
+	</section>
+}
+
+templ filmstripClip(p Page, i int, clip models.Clip) {
+	{{ player := PlayerFor(clip.VideoUrl) }}
+	<button
+		type="button"
+		class={ "ep-clip", templ.KV("is-active", i == 1) }
+		aria-pressed={ boolText(i == 1) }
+		data-index={ web.IDText(int64(i)) }
+		data-kind={ player.Kind }
+		if player.YouTubeID != "" {
+			data-yt-id={ player.YouTubeID }
+		}
+		data-src-muted={ player.Muted }
+		data-src-unmuted={ player.Unmuted }
+		data-title={ clip.Title }
+		data-runtime={ clip.Runtime }
+		data-format={ clip.Format }
+		data-years={ clip.Years }
+		data-status={ clip.Status }
+	>
+		if b, ok := p.Thumbnails[clip.ID]; ok {
+			@p.Storage.Img(b, images.Img{Class: "ep-clip__thumb", Sizes: "(max-width: 760px) 50vw, 25vw"})
+		}
+		<span class="ep-clip__label">CLIP { pad2(i) } · { strings.ToUpper(clip.Title) }</span>
+	</button>
+}
+
+templ memberRow(i int, m models.EnsembleMember) {
+	<span class="ep-member__code">{ memberCode(i) }</span>
+	<span class="ep-member__name">{ m.Name }</span>
+	<span class="ep-member__role">{ m.Role }</span>
+	<span class="ep-member__since">SINCE { m.SinceYear }</span>
+}
+
+func boolText(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}

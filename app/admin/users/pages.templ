@@ -1,0 +1,102 @@
+package users
+
+import (
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/models"
+)
+
+templ index(p admin.Page, list []models.ListUsersRow) {
+	@admin.Layout(p) {
+		if tp := p.Password; tp != nil {
+			<dialog class="modal" data-controller="dialog">
+				<div class="modal__box">
+					<h3>
+						if tp.Reset {
+							Password reset for { tp.Email }
+						} else {
+							Account created for { tp.Email }
+						}
+					</h3>
+					<p>
+						Copy this temporary password and send it to them. It won't be shown again.
+						They'll be asked to change it on next login.
+					</p>
+					<div class="secret">
+						<code>{ tp.Password }</code>
+						<button type="button" class="btn btn--primary btn--sm" data-controller="clipboard" data-clipboard-text-value={ tp.Password } data-action="clipboard#copy">Copy</button>
+					</div>
+					<form method="dialog" class="modal__actions">
+						<button class="btn">Done</button>
+					</form>
+				</div>
+			</dialog>
+		}
+		@admin.Head("Users", "Editors and administrators with access to this admin.") {
+			<a href="/admin/users/new" class="btn btn--primary btn--sm">Invite editor</a>
+		}
+		<div class="table-wrap">
+			<table class="table">
+				<thead>
+					<tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+				</thead>
+				<tbody>
+					for _, u := range list {
+						<tr>
+							<td class="strong">
+								{ u.EmailAddress }
+								if u.ID == p.User.ID {
+									<span class="badge badge--ghost">you</span>
+								}
+							</td>
+							<td>
+								<span class={ "badge", templ.KV("badge--primary", u.Role == models.Admin), templ.KV("badge--ghost", u.Role != models.Admin) }>{ u.Role }</span>
+							</td>
+							<td class="muted">
+								if u.MustChangePassword != 0 {
+									Pending first login
+								} else {
+									Active
+								}
+							</td>
+							<td class="end">
+								if u.ID != p.User.ID {
+									@admin.Button("/admin/users/"+web.IDText(u.ID)+"/reset-password", "post", "Reset password",
+										"Reset password for "+u.EmailAddress+"? Their current sessions will be signed out and they'll need a new temporary password.",
+										"btn btn--ghost btn--xs")
+									@admin.Button("/admin/users/"+web.IDText(u.ID), "delete", "Remove", "Remove "+u.EmailAddress+"? This can't be undone.",
+										"btn btn--ghost btn--xs btn--danger")
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ form(p admin.Page, email, role string, errs []string) {
+	@admin.Layout(p) {
+		@admin.Head("Invite editor", "A temporary password is generated automatically. You'll see it once after creating the account — copy it and email it to the new editor.")
+		<form method="post" action="/admin/users" class="form">
+			@admin.Errors(errs)
+			<label class="field">
+				<span class="field__label">Email</span>
+				<input class="input" type="email" name="user[email_address]" value={ email } autocomplete="off" required/>
+			</label>
+			<label class="field">
+				<span class="field__label">Role</span>
+				<select class="select" name="user[role]">
+					<option value="editor" selected?={ role != models.Admin }>Editor</option>
+					<option value="admin" selected?={ role == models.Admin }>Administrator</option>
+				</select>
+			</label>
+			<div class="actions">
+				<button type="submit" class="btn btn--primary">Create account</button>
+				<a href="/admin/users" class="btn btn--ghost">Cancel</a>
+			</div>
+		</form>
+	}
+}

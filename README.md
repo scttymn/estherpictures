@@ -1,103 +1,95 @@
 # Esther Pictures
 
-The Esther Pictures website — a Phoenix app serving a public marketing homepage
-(design direction **1B · Frame Index**) backed by a small admin where
-non-developers edit all the site's content.
-
-- **Framework:** Phoenix 1.8 (controllers + HEEx, no LiveView)
-- **Database:** SQLite (single file, no server to run)
-- **Public styling:** hand-written CSS at `priv/static/css/site.css` (no build step)
-- **Admin styling:** Tailwind + daisyUI (Phoenix defaults)
+The Esther Pictures website: a public homepage (design direction **1B · Frame
+Index**) and a small admin where non-developers edit everything on it. Built
+on [gantry](https://github.com/scttymn/gantry) (Go, templ, SQLite), deployed by
+[Houston](https://github.com/scttymn/houston). It was a Phoenix app until
+2026-09-30; its database and uploads carry over (see "From Phoenix").
 
 ## Running locally
 
 ```bash
-mix setup            # installs deps, creates + migrates the DB, seeds content, builds assets
-mix phx.server       # http://localhost:4000
-houston dev          # or in Docker: http://estherpictures.localhost (another branch: <branch>.estherpictures.localhost)
+gantry dev      # http://estherpictures.localhost (houston dev); code changes reload
+gantry test     # go vet and the tests, in the test image
+gantry console  # the database's console
 ```
 
-`mix setup` runs the seeds, which populate the homepage with the launch copy.
-Re-running `mix run priv/repo/seeds.exs` resets **content** to those defaults but
-leaves user accounts untouched.
+gantry is mounted beside the app in development (`../gantry`, through a
+`go.work` git ignores), so changes to both show at once; tests and deploys
+build against the gantry version `go.mod` pins.
 
-## First run: creating the administrator
+A new database starts with the launch copy (`db/seeds`).
 
-The admin uses an **invite-based** flow — there is no open sign-up.
+## First run: the administrator
 
-1. Visit `/users/register`. The **first** account you create becomes the
-   **administrator**. After that, this page closes automatically.
-2. You're logged in and dropped at `/admin`.
+There is no open sign-up. Visit `/users/register`: the **first** account
+becomes the administrator, and the page closes after it.
 
-## Inviting editors
+## Editors
 
-1. As an admin, go to **Users → Invite editor**.
-2. Enter their email and role. A **temporary password is generated and shown to
-   you once** — copy it and email it to the new editor yourself.
-3. On their first login the editor is **forced to choose a new password** before
-   they can reach anything else.
+An admin invites editors at **Users → Invite editor**. A seven-digit temporary
+password is shown once, to send on; at their first sign-in the editor chooses
+their own before anything else. **Reset password** gives a new temporary one
+and signs them out everywhere. Nobody resets or removes their own account
+there. The site sends no email, so there's no "forgot password" link: an
+admin resets it.
 
-Admins can remove editors from the same screen. You can't delete your own account.
+Editors edit the site; the users and the history are for admins.
 
 ## Editing the site
 
-Everything on the homepage is editable from `/admin` — no code, no redeploy:
+Everything on the homepage is in `/admin`:
 
-- **Site copy** — nav brand/tagline, hero heading, reel slate details, contact
-  block, social links, footer. Multi-line fields (hero & contact headings) keep
-  their line breaks.
-- **Craft** — the "what we do" grid. Order via the `position` field.
-- **Clips** — the hero filmstrip. Order via `position`.
-- **Ensemble** — the roster. Order via `position`.
+- **Site copy**: the nav's brand and tagline, the hero heading, the contact
+  block, the social links, the footer. Multi-line fields keep their line
+  breaks.
+- **Craft**: the "what we do" grid, ordered by position.
+- **Clips**: the hero's filmstrip, ordered by position. Clip 01 plays muted on
+  load; a visitor picks another, or turns the sound on. A clip is a YouTube
+  or Vimeo link (or a video file's address), its slate stats, and a thumbnail
+  (JPG, PNG, WebP or GIF, up to 5 MB): upload the still you want, as YouTube
+  can't export a chosen frame.
+- **Cast**: the roster, ordered by position. A member with a bio opens to show
+  it, beside their headshot.
 
-The `01–04`, `CLIP 0X`, and `A1/A2` labels are derived automatically from order.
+The `01–04`, `CLIP 0X` and `A1/A2` labels come from the order.
 
-## The hero reel & clips
+## History
 
-The hero is an **interactive clip player** driven by the **Clips** you manage in
-the admin. On load, **clip 01 auto-plays, muted, looping**, and the left slate
-shows that clip's stats. Visitors can **click any clip** in the filmstrip to make
-it the active, looping clip (the slate updates to match), and there's a **sound**
-toggle to unmute.
+Every edit and deletion is kept (the newest 20 per item) at **History**, with
+what it changed. Any can be reverted, and a deleted item brought back, image
+and all; a revert is recorded too, so it can be undone. A replaced image is
+kept while a history entry names it, and deleted once none does (after
+discarding entries, or clearing the history).
 
-Each clip (admin → **Clips**) has:
+## Images
 
-- **Video URL** — a YouTube or Vimeo link. It's embedded chrome-less (no
-  controls, no branding) and non-interactive, so it reads as a background reel.
-- **Slate stats** — title, runtime, format, years, status (shown while active).
-- **Thumbnail image** — an **uploaded** still (JPG/PNG/WebP/GIF, ≤5 MB). Because
-  YouTube can't export a frame at a chosen timestamp, you upload the exact still
-  you want.
+Thumbnails and headshots are gantry's `storage` (Active Storage's tables and
+disk layout, under `DATA_DIR/storage`). Each is served at every width it comes
+in, as AVIF and WebP, the copies made in the background by a child process
+that keeps out of the server's way.
 
-Notes:
-- Autoplay requires muting (a browser rule) — matching the design's muted reel.
-  Clicking **sound** reloads the clip with audio (a fresh user gesture is
-  required to unmute, so playback restarts).
-- On load, YouTube briefly shows a title/spinner; Vimeo's background mode does
-  not — prefer Vimeo for a perfectly clean start.
-- Uploaded thumbnails live in `priv/static/uploads/` (git-ignored). **On deploy
-  they must sit on a persistent volume** (see Deployment, TBD) or they'll be lost
-  on redeploy. Local placeholder videos, if any, live in `priv/static/media/`
-  (also git-ignored).
+## From Phoenix
 
-## Project layout
+The first start on the Phoenix app's database (`db/migrations/00002_gantry.sql`)
+moves it onto gantry: users keep their passwords (bcrypt), sessions don't
+(everyone signs in once more), and every timestamp is rewritten as gantry
+writes them. Then the uploads under `DATA_DIR/uploads` move into storage, and
+the history's entries name them. The files under `uploads/` stay where they
+were, unused. There's no way back but restoring the database as it was before
+the deploy.
+
+`test/phoenix` is a database the Phoenix app made through its own code, with
+its uploads: `TestFromPhoenix` moves it and checks the site, the sign-ins and
+the history.
+
+## Layout
 
 ```
-lib/esther_pictures/
-  accounts/            # users, auth, invite + role logic
-  content/             # site_setting, craft_service, clip, ensemble_member schemas
-  content.ex           # editable-content context
-lib/esther_pictures_web/
-  controllers/
-    page_controller.ex           # public homepage (uses the public root layout)
-    page_html/home.html.heex     # the 1B Frame Index page
-    admin/                       # dashboard, site copy, craft, clips, ensemble, users
-priv/static/css/site.css         # public marketing styles
-priv/repo/seeds.exs              # launch content
-```
-
-## Tests
-
-```bash
-mix test
+app/home/             the public page, and its clip player
+app/admin/            the admin's layout and sign-in, and a package per section
+app/services/content  the content's history: versions, restoring, the image sweep
+app/models/           the tables' queries (sqlc) and rules
+assets/               site.css and site.js (the public page), admin.css, the fonts
+db/migrations/        the schema's changes, run at start
 ```

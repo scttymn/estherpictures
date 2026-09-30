@@ -1,0 +1,41 @@
+package settings
+
+import (
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/models"
+)
+
+templ form(p admin.Page, s models.SiteSetting, errs []string) {
+	@admin.Layout(p) {
+		@admin.Head("Site copy", "All one-off text on the homepage. Multi-line fields keep their line breaks.")
+		<form method="post" action="/admin/settings" class="form form--wide">
+			<input type="hidden" name="_method" value="put"/>
+			@admin.Errors(errs)
+			<section class="form-section">
+				<h3>Header</h3>
+				@admin.Input(param, "collective_name", "Collective name (nav / brand)", "text", s.CollectiveName, true)
+				@admin.Text(param, "tagline", "Nav tagline", s.Tagline)
+			</section>
+			<section class="form-section">
+				<h3>Hero</h3>
+				@admin.Textarea(param, "hero_heading", "Hero heading (press Enter for line breaks)", s.HeroHeading)
+				<p class="hint">The clips and their slate stats are managed under <a href="/admin/clips" class="link">Clips</a>. Clip 01 plays on load.</p>
+			</section>
+			<section class="form-section">
+				<h3>Contact &amp; footer</h3>
+				@admin.Textarea(param, "contact_heading", "Contact heading (press Enter for line breaks)", s.ContactHeading)
+				<div class="grid-2">
+					@admin.Text(param, "email", "Email", s.Email)
+					@admin.Text(param, "studio_locations", "Studio locations", s.StudioLocations)
+					@admin.Text(param, "instagram_url", "Instagram URL", s.InstagramUrl)
+					@admin.Text(param, "letterboxd_url", "Letterboxd URL", s.LetterboxdUrl)
+				</div>
+				@admin.Text(param, "footer_text", "Footer text", s.FooterText)
+			</section>
+			<div class="actions">
+				<button type="submit" class="btn btn--primary">Save changes</button>
+				<a href="/admin" class="btn btn--ghost">Cancel</a>
+			</div>
+		</form>
+	}
+}

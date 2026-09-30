@@ -1,0 +1,66 @@
+package craft
+
+import (
+	"strconv"
+
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/models"
+)
+
+templ index(p admin.Page, list []models.CraftService) {
+	@admin.Layout(p) {
+		@admin.Head("Craft services", `The "what we do" grid. Ordered by position.`) {
+			<a href="/admin/craft/new" class="btn btn--primary btn--sm">Add service</a>
+		}
+		<div class="table-wrap">
+			<table class="table">
+				<thead>
+					<tr><th>#</th><th>Title</th><th>Description</th><th></th></tr>
+				</thead>
+				<tbody>
+					for _, s := range list {
+						<tr>
+							<td class="num">{ strconv.FormatInt(s.Position, 10) }</td>
+							<td class="strong">{ s.Title }</td>
+							<td class="muted clip">{ s.Description }</td>
+							<td class="end">
+								<a href={ templ.SafeURL("/admin/craft/" + web.IDText(s.ID) + "/edit") } class="btn btn--ghost btn--xs">Edit</a>
+								@admin.Button("/admin/craft/"+web.IDText(s.ID), "delete", "Delete", "Delete “"+s.Title+"”?", "btn btn--ghost btn--xs btn--danger")
+							</td>
+						</tr>
+					}
+					if len(list) == 0 {
+						<tr><td colspan="4" class="empty">No services yet.</td></tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ form(p admin.Page, title string, s models.CraftService, errs []string) {
+	@admin.Layout(p) {
+		@admin.Head(title, "")
+		{{
+			action, submit := "/admin/craft", "Add service"
+			if s.ID != 0 {
+				action, submit = "/admin/craft/"+web.IDText(s.ID), "Save changes"
+			}
+		}}
+		<form method="post" action={ templ.SafeURL(action) } class="form">
+			if s.ID != 0 {
+				<input type="hidden" name="_method" value="put"/>
+			}
+			@admin.Errors(errs)
+			@admin.Input(param, "position", "Position (controls order & the 01–04 number)", "number", strconv.FormatInt(s.Position, 10), false)
+			@admin.Input(param, "title", "Title", "text", s.Title, true)
+			@admin.Textarea(param, "description", "Description", s.Description)
+			<div class="actions">
+				<button type="submit" class="btn btn--primary">{ submit }</button>
+				<a href="/admin/craft" class="btn btn--ghost">Cancel</a>
+			</div>
+		</form>
+	}
+}

@@ -1,0 +1,111 @@
+package clips
+
+import (
+	"strconv"
+
+	"github.com/scttymn/gantry/images"
+	"github.com/scttymn/gantry/storage"
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/models"
+)
+
+templ index(p admin.Page, st *storage.Storage, list []models.Clip, thumbs map[int64]storage.Blob) {
+	@admin.Layout(p) {
+		@admin.Head("Clips", "Clip 01 auto-plays; visitors can click others.") {
+			<a href="/admin/clips/new" class="btn btn--primary btn--sm">Add clip</a>
+		}
+		<div class="table-wrap">
+			<table class="table">
+				<thead>
+					<tr><th>#</th><th>Thumbnail</th><th>Title</th><th>Video</th><th></th></tr>
+				</thead>
+				<tbody>
+					for _, cl := range list {
+						<tr>
+							<td class="num">{ strconv.FormatInt(cl.Position, 10) }</td>
+							<td>
+								if b, ok := thumbs[cl.ID]; ok {
+									<div class="thumb">
+										@st.Img(b, images.Img{Sizes: "80px"})
+									</div>
+								} else {
+									<span class="small faint">none</span>
+								}
+							</td>
+							<td class="strong">{ cl.Title }</td>
+							<td class="small">
+								if cl.VideoUrl != "" {
+									<span class="muted">set</span>
+								} else {
+									<span class="faint">—</span>
+								}
+							</td>
+							<td class="end">
+								<a href={ templ.SafeURL("/admin/clips/" + web.IDText(cl.ID) + "/edit") } class="btn btn--ghost btn--xs">Edit</a>
+								@admin.Button("/admin/clips/"+web.IDText(cl.ID), "delete", "Delete", "Delete “"+cl.Title+"”?", "btn btn--ghost btn--xs btn--danger")
+							</td>
+						</tr>
+					}
+					if len(list) == 0 {
+						<tr><td colspan="5" class="empty">No clips yet.</td></tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ form(p admin.Page, title string, st *storage.Storage, cl models.Clip, thumb *storage.Blob, errs []string) {
+	@admin.Layout(p) {
+		@admin.Head(title, "")
+		{{
+			action, submit := "/admin/clips", "Add clip"
+			if cl.ID != 0 {
+				action, submit = "/admin/clips/"+web.IDText(cl.ID), "Save changes"
+			}
+		}}
+		<form method="post" action={ templ.SafeURL(action) } enctype="multipart/form-data" class="form">
+			if cl.ID != 0 {
+				<input type="hidden" name="_method" value="put"/>
+			}
+			@admin.Errors(errs)
+			@admin.Input(param, "position", "Position (controls order & the CLIP 0X number)", "number", strconv.FormatInt(cl.Position, 10), false)
+			@admin.Input(param, "title", "Title", "text", cl.Title, true)
+			@admin.Text(param, "video_url", "Video URL — YouTube or Vimeo (blank shows a placeholder)", cl.VideoUrl)
+			<fieldset class="box">
+				<legend>Slate stats (shown while this clip plays)</legend>
+				<div class="grid-2">
+					@admin.Text(param, "runtime", "Runtime", cl.Runtime)
+					@admin.Text(param, "format", "Format", cl.Format)
+					@admin.Text(param, "years", "Years", cl.Years)
+					@admin.Text(param, "status", "Status", cl.Status)
+				</div>
+			</fieldset>
+			<div class="field">
+				<label class="field__label" for="clip_thumbnail">Thumbnail image</label>
+				if thumb != nil {
+					<div class="current">
+						<div class="current__image">
+							@st.Img(*thumb, images.Img{Alt: "Current thumbnail", Sizes: "112px"})
+						</div>
+						<span class="small faint">Current thumbnail</span>
+					</div>
+				}
+				<input type="file" id="clip_thumbnail" name="clip[thumbnail]" accept="image/*" class="input"/>
+				<p class="hint">
+					JPG, PNG, WebP, or GIF, up to 5&nbsp;MB. Since YouTube can't export a
+					frame at a chosen time, upload the still you want here.
+					if thumb != nil {
+						Uploading a new image replaces the current one.
+					}
+				</p>
+			</div>
+			<div class="actions">
+				<button type="submit" class="btn btn--primary">{ submit }</button>
+				<a href="/admin/clips" class="btn btn--ghost">Cancel</a>
+			</div>
+		</form>
+	}
+}

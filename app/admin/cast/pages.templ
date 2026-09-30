@@ -1,0 +1,104 @@
+package cast
+
+import (
+	"strconv"
+
+	"github.com/scttymn/gantry/images"
+	"github.com/scttymn/gantry/storage"
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/models"
+)
+
+templ index(p admin.Page, st *storage.Storage, list []models.EnsembleMember, shots map[int64]storage.Blob) {
+	@admin.Layout(p) {
+		@admin.Head("Cast", "The roster of people. Ordered by position.") {
+			<a href="/admin/ensemble/new" class="btn btn--primary btn--sm">Add member</a>
+		}
+		<div class="table-wrap">
+			<table class="table">
+				<thead>
+					<tr><th>#</th><th></th><th>Name</th><th>Role</th><th>Bio</th><th>Since</th><th></th></tr>
+				</thead>
+				<tbody>
+					for _, m := range list {
+						<tr>
+							<td class="num">{ strconv.FormatInt(m.Position, 10) }</td>
+							<td>
+								if b, ok := shots[m.ID]; ok {
+									<div class="thumb thumb--portrait">
+										@st.Img(b, images.Img{Alt: m.Name, Sizes: "32px"})
+									</div>
+								}
+							</td>
+							<td class="strong">{ m.Name }</td>
+							<td class="muted">{ m.Role }</td>
+							<td class="muted">
+								if m.HasBio() {
+									<span class="clamp">{ m.Bio }</span>
+								} else {
+									<span class="faint">—</span>
+								}
+							</td>
+							<td class="muted">{ m.SinceYear }</td>
+							<td class="end">
+								<a href={ templ.SafeURL("/admin/ensemble/" + web.IDText(m.ID) + "/edit") } class="btn btn--ghost btn--xs">Edit</a>
+								@admin.Button("/admin/ensemble/"+web.IDText(m.ID), "delete", "Delete", "Delete “"+m.Name+"”?", "btn btn--ghost btn--xs btn--danger")
+							</td>
+						</tr>
+					}
+					if len(list) == 0 {
+						<tr><td colspan="7" class="empty">No members yet.</td></tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ form(p admin.Page, title string, st *storage.Storage, m models.EnsembleMember, shot *storage.Blob, errs []string) {
+	@admin.Layout(p) {
+		@admin.Head(title, "")
+		{{
+			action, submit := "/admin/ensemble", "Add member"
+			if m.ID != 0 {
+				action, submit = "/admin/ensemble/"+web.IDText(m.ID), "Save changes"
+			}
+		}}
+		<form method="post" action={ templ.SafeURL(action) } enctype="multipart/form-data" class="form">
+			if m.ID != 0 {
+				<input type="hidden" name="_method" value="put"/>
+			}
+			@admin.Errors(errs)
+			@admin.Input(param, "position", "Position (controls order & the A1/A2 code)", "number", strconv.FormatInt(m.Position, 10), false)
+			@admin.Input(param, "name", "Name", "text", m.Name, true)
+			@admin.Text(param, "role", "Role (e.g. DIRECTOR / ACTOR)", m.Role)
+			@admin.Textarea(param, "bio", "Bio (optional — shown when a visitor expands the cast row)", m.Bio)
+			<div class="field">
+				<label class="field__label" for="ensemble_member_headshot">Headshot</label>
+				if shot != nil {
+					<div class="current">
+						<div class="current__image current__image--portrait">
+							@st.Img(*shot, images.Img{Alt: "Current headshot", Sizes: "64px"})
+						</div>
+						<span class="small faint">Current headshot</span>
+					</div>
+				}
+				<input type="file" id="ensemble_member_headshot" name="ensemble_member[headshot]" accept="image/*" class="input"/>
+				<p class="hint">
+					JPG, PNG, WebP, or GIF, up to 5&nbsp;MB. Shown left of the bio when
+					a visitor expands the cast row.
+					if shot != nil {
+						Uploading a new image replaces the current one.
+					}
+				</p>
+			</div>
+			@admin.Text(param, "since_year", "Since year (e.g. 2021)", m.SinceYear)
+			<div class="actions">
+				<button type="submit" class="btn btn--primary">{ submit }</button>
+				<a href="/admin/ensemble" class="btn btn--ghost">Cancel</a>
+			</div>
+		</form>
+	}
+}

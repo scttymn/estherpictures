@@ -1,0 +1,37 @@
+package admin
+
+import "strconv"
+
+templ dashboard(p Page, n Counts) {
+	@Layout(p) {
+		@Head("Welcome, "+p.User.EmailAddress, "Edit everything that appears on the public site from here.")
+		<div class="cards">
+			<a href="/admin/settings" class="card">
+				<h3>Site copy</h3>
+				<p>Hero, tagline, reel details, contact &amp; footer.</p>
+			</a>
+			<a href="/admin/craft" class="card">
+				<h3>Craft <span class="badge badge--neutral">{ strconv.FormatInt(n.Craft, 10) }</span></h3>
+				<p>The "what we do" services grid.</p>
+			</a>
+			<a href="/admin/clips" class="card">
+				<h3>Clips <span class="badge badge--neutral">{ strconv.FormatInt(n.Clips, 10) }</span></h3>
+				<p>The hero filmstrip.</p>
+			</a>
+			<a href="/admin/ensemble" class="card">
+				<h3>Cast <span class="badge badge--neutral">{ strconv.FormatInt(n.Cast, 10) }</span></h3>
+				<p>The roster of people.</p>
+			</a>
+			if p.User.IsAdmin() {
+				<a href="/admin/users" class="card">
+					<h3>Users</h3>
+					<p>Invite editors and manage access.</p>
+				</a>
+			}
+			<a href="/" target="_blank" rel="noopener" class="card">
+				<h3>View site ↗</h3>
+				<p>See the live public homepage.</p>
+			</a>
+		</div>
+	}
+}

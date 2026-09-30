@@ -1,18 +1,24 @@
+# Houston's project: gantry dev (houston dev) serves it at
+# http://estherpictures.localhost, gantry test runs its tests, and houston
+# deploy puts it on the server, at the domains below.
 name: estherpictures
 
 services:
   app:
     build: { context: ., target: dev }
-    expose: ["4000"]               # phx.server's port; houston dev serves it at http://estherpictures.localhost
+    expose: ["8080"]
     environment:
-      # Required on the server; houston test gives it a random value (long
-      # enough for Phoenix). Carry Coolify's over so sessions survive the move.
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      # The canonical host for absolute URLs; www redirects to it (CanonicalHost).
-      PHX_HOST: estherpictures.com
+      # Signs cookies and forms: the Phoenix app's secret, kept by Houston.
+      SECRET_KEY: ${SECRET_KEY_BASE}
+      # The Phoenix app's database, where its volume keeps it; the uploads
+      # beside it (uploads/, moved into storage/ at the first start).
+      DATABASE_URL: sqlite:///data/esther_pictures.db
     volumes:
-      - .:/app
-      - data:/opt/estherpictures/data # the SQLite database (DATABASE_PATH) and uploads
+      - .:/app                     # the code, rebuilt on change
+      # gantry beside it, for go.work (ignored by git): changes to both at once.
+      # Dev only; tests and deploys build against the gantry go.mod pins.
+      - ../gantry:/gantry
+      - data:/data                 # the database and the uploaded images
 
 volumes:
   data:
@@ -20,12 +26,8 @@ volumes:
 x-houston:
   health: /up
   # Served here and at estherpictures.svnmns.com; www redirects to the apex
-  # (CanonicalHost). Houston makes both CNAMEs to its tunnel.
+  # (app.Apex). Houston makes both CNAMEs to its tunnel.
   domains: [estherpictures.com, www.estherpictures.com]
   commands:
-    console:
-      dev: iex -S mix
-      server: bin/esther_pictures remote
-    test: mix test
-  hooks:
-    release: bin/migrate
+    test: sh -c "go vet ./... && go test ./..."
+    console: { dev: go run ./cmd/estherpictures db console, server: /app db console }

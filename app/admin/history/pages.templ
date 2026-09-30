@@ -1,0 +1,90 @@
+package history
+
+import (
+	"strings"
+
+	"github.com/scttymn/gantry/web"
+
+	"github.com/scttymn/estherpictures/app/admin"
+	"github.com/scttymn/estherpictures/app/services/content"
+)
+
+templ index(p admin.Page, entries []content.Entry) {
+	@admin.Layout(p) {
+		@admin.Head("History", "Every edit and deletion, newest first. Expand an entry to see exactly what changed and to restore it — the state a restore replaces is saved too, so a restore can itself be undone.") {
+			if len(entries) > 0 {
+				@admin.Button("/admin/history", "delete", "Clear history",
+					"Discard ALL history? Nothing can be rolled back afterwards, and images no longer used by a clip will be permanently deleted.",
+					"btn btn--outline btn--danger btn--sm")
+			}
+		}
+		if len(entries) == 0 {
+			<p class="muted">No changes recorded yet. Edits and deletions will show up here.</p>
+		} else {
+			<div class="history">
+				for _, e := range entries {
+					@entry(e)
+				}
+			</div>
+		}
+	}
+}
+
+templ entry(e content.Entry) {
+	<details>
+		<summary>
+			<svg class="chev" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+				<path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+			</svg>
+			<span class="when">{ e.At.Format("Jan 2, 2006 15:04") } UTC</span>
+			<span class="what">{ KindName(e.Kind) }</span>
+			if e.Label != "" {
+				<span class="label">· { e.Label }</span>
+			}
+			if e.Deletion {
+				<span class="badge badge--error">deleted</span>
+			} else {
+				<span class="badge badge--ghost">edited</span>
+			}
+			<span class="who">
+				if e.By != "" {
+					{ e.By }
+				} else {
+					—
+				}
+			</span>
+		</summary>
+		<div class="body">
+			if len(e.Changes) == 0 {
+				<p class="muted small">Saved without changing anything.</p>
+			} else {
+				<div class="table-wrap">
+					<table class="table table--sm">
+						<thead>
+							<tr><th>Field</th><th>Before</th><th>After</th></tr>
+						</thead>
+						<tbody>
+							for _, ch := range e.Changes {
+								<tr>
+									<td class="field-name">{ fieldName(ch.Field) }</td>
+									<td class="before">{ shown(ch.Before) }</td>
+									<td class="after">{ shown(ch.After) }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+			<div class="actions">
+				if e.Deletion {
+					@admin.Button("/admin/history/"+web.IDText(e.ID)+"/restore", "post", "Bring back", "Bring back this "+strings.ToLower(KindName(e.Kind))+"?", "btn btn--outline btn--sm")
+				} else {
+					@admin.Button("/admin/history/"+web.IDText(e.ID)+"/restore", "post", "Revert to before", `Revert to the "before" state shown above?`, "btn btn--outline btn--sm")
+				}
+				@admin.Button("/admin/history/"+web.IDText(e.ID), "delete", "Discard entry",
+					"Discard this history entry? It can no longer be restored, and images only it references will be permanently deleted.",
+					"btn btn--ghost btn--sm btn--danger")
+			</div>
+		</div>
+	</details>
+}

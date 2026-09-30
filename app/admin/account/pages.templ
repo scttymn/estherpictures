@@ -1,0 +1,53 @@
+package account
+
+import "github.com/scttymn/estherpictures/app/admin"
+
+templ passwordForm(p admin.Page, title string, forced bool, errs []string) {
+	@admin.AuthLayout(p) {
+		{{
+			subtitle := ""
+			if forced {
+				subtitle = "Your account was created with a temporary password. Please set your own to continue."
+			}
+		}}
+		@admin.Head(title, subtitle)
+		<form method="post" action="/admin/change-password" class="form">
+			<input type="hidden" name="_method" value="put"/>
+			@admin.Errors(errs)
+			<label class="field">
+				<span class="field__label">New password (min 7 chars, 1 uppercase, 1 number)</span>
+				<input class="input" type="password" name="user[password]" autocomplete="new-password" required autofocus maxlength="72"/>
+			</label>
+			<label class="field">
+				<span class="field__label">Confirm new password</span>
+				<input class="input" type="password" name="user[password_confirmation]" autocomplete="new-password" required maxlength="72"/>
+			</label>
+			<button type="submit" class="btn btn--primary btn--block">Save password <span aria-hidden="true">→</span></button>
+		</form>
+	}
+}
+
+templ setupForm(p admin.Page, email string, errs []string) {
+	@admin.AuthLayout(p) {
+		@admin.Head("Set up the site administrator", "This is a one-time step. The first account becomes the administrator, then registration closes and further editors are added from inside the admin.")
+		<form method="post" action="/users/register" class="form" id="registration_form">
+			@admin.Errors(errs)
+			<label class="field">
+				<span class="field__label">Email</span>
+				<input class="input" type="email" name="user[email_address]" value={ email } autocomplete="username" required/>
+			</label>
+			<label class="field">
+				<span class="field__label">Password (min 7 chars, 1 uppercase, 1 number)</span>
+				<input class="input" type="password" name="user[password]" autocomplete="new-password" required maxlength="72"/>
+			</label>
+			<label class="field">
+				<span class="field__label">Confirm password</span>
+				<input class="input" type="password" name="user[password_confirmation]" autocomplete="new-password" required maxlength="72"/>
+			</label>
+			<button type="submit" class="btn btn--primary btn--block">Create administrator account <span aria-hidden="true">→</span></button>
+		</form>
+		<p class="small center">
+			Already set up? <a href="/login" class="link"><strong>Log in</strong></a>
+		</p>
+	}
+}
