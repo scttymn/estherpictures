@@ -92,6 +92,7 @@
   var ytEvents = {
     onReady: function (e) { ytApply(e.target); },
     onStateChange: function (e) {
+      if (e.data === window.YT.PlayerState.PLAYING) playing();
       // Belt-and-suspenders looping (loop+playlist is unreliable via the API).
       if (e.data === window.YT.PlayerState.ENDED) {
         e.target.seekTo(0, true);
@@ -239,6 +240,14 @@
     if (!embed || !embed.isConnected) return;
     player.appendChild(embed.content.cloneNode(true));
     embed.remove();
+    // The poster goes when the video plays: YouTube says so through its
+    // API (onStateChange), a file through its playing event; a Vimeo
+    // background player starts cleanly a moment after it loads.
+    var video = player.querySelector("video");
+    if (video) video.addEventListener("playing", playing, { once: true });
+    if (clips[0].dataset.kind === "vimeo") {
+      player.querySelector("iframe").addEventListener("load", function () { setTimeout(playing, 1000); }, { once: true });
+    }
     if (clips[0].dataset.kind === "youtube") {
       whenYT(function () {
         if (!ytPlayer) {
@@ -252,6 +261,10 @@
   // callback runs before that frame paints, and a task queued from it runs
   // after. On a slow phone the first paint can come well after load.
   var REEL_DELAY = 3000;
+
+  function playing() {
+    player.classList.add("is-playing");
+  }
 
   function afterPaint() {
     requestAnimationFrame(function () {
