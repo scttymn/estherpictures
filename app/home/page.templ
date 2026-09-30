@@ -190,7 +190,7 @@ templ hero(p Page) {
 			<div id="reel-player" class="ep-reel__embed">
 				if active != nil {
 					if b, ok := p.Thumbnails[active.ID]; ok {
-						@p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: "(max-width: 1080px) 100vw, 80vw", Priority: true})
+						@p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: posterSizes(b), Priority: true})
 					}
 				}
 				if player.Kind != "none" {

@@ -496,7 +496,7 @@ func hero(p Page) templ.Component {
 		}
 		if active != nil {
 			if b, ok := p.Thumbnails[active.ID]; ok {
-				templ_7745c5c3_Err = p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: "(max-width: 1080px) 100vw, 80vw", Priority: true}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = p.Storage.Img(b, images.Img{Class: "ep-reel__poster", Sizes: posterSizes(b), Priority: true}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

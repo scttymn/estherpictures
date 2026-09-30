@@ -120,7 +120,8 @@ func TestHomeCastAndImages(t *testing.T) {
 		t.Error("one headshot")
 	}
 	poster := page.Find("#reel-player img.ep-reel__poster")
-	if poster.Length() != 1 || poster.AttrOr("fetchpriority", "") != "high" || poster.AttrOr("loading", "") != "eager" {
+	if poster.Length() != 1 || poster.AttrOr("fetchpriority", "") != "high" || poster.AttrOr("loading", "") != "eager" ||
+		poster.AttrOr("sizes", "") != "(max-width: 1080px) max(100vw, 62vh * 1.778), max(80vw, 560px * 1.778)" {
 		t.Errorf("the first clip's thumbnail is the hero's poster, fetched first: %v", poster.Nodes)
 	}
 	thumb := page.Find(".ep-clip").First().Find("img.ep-clip__thumb")
