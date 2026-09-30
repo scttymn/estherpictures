@@ -1,6 +1,8 @@
 package app_test
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,6 +57,9 @@ func TestFromPhoenix(t *testing.T) {
 	moved, err := a.Content.ImportUploads(ctx, uploads)
 	if err != nil || moved != 3 {
 		t.Fatalf("moved %d uploads (%v), want the two thumbnails and the headshot", moved, err)
+	}
+	if _, err := os.Stat(uploads); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("the uploads folder stays: %v", err)
 	}
 	if again, err := a.Content.ImportUploads(ctx, uploads); again != 0 || err != nil {
 		t.Errorf("moving again moved %d (%v)", again, err)

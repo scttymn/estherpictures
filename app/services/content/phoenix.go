@@ -20,8 +20,8 @@ import (
 // files under dir) becomes an attachment, and each version that names one
 // names its blob instead ("thumbnail": key), so restoring it brings the
 // image back. A row is cleared as it's moved, so running it again moves
-// only what's left; a file that's missing is left out, and said so. The
-// files stay where they were, for going back to Phoenix; nothing reads them.
+// only what's left; a file that's missing is left out, and said so. Then
+// the folder goes: everything in it that anything named is in storage.
 func (c *Content) ImportUploads(ctx context.Context, dir string) (moved int, err error) {
 	keys := map[string]string{} // by upload path: its blob, stored once
 	blobFor := func(upload string) (string, error) {
@@ -118,6 +118,12 @@ func (c *Content) ImportUploads(ctx context.Context, dir string) (moved int, err
 	if moved > 0 {
 		c.Log.Info("[uploads] moved into storage", "files", moved)
 		c.Storage.WarmLater()
+	}
+	if _, err := os.Stat(dir); err == nil {
+		if err := os.RemoveAll(dir); err != nil {
+			return moved, err
+		}
+		c.Log.Info("[uploads] removed the Phoenix app's uploads folder", "dir", dir)
 	}
 	return moved, nil
 }

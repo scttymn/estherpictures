@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/a-h/templ v0.3.1020
-	github.com/scttymn/gantry v0.9.1
+	github.com/scttymn/gantry v0.9.2
 )
 
 require (

@@ -79,9 +79,8 @@ The first start on the Phoenix app's database (`db/migrations/00002_gantry.sql`)
 moves it onto gantry: users keep their passwords (bcrypt), sessions don't
 (everyone signs in once more), and every timestamp is rewritten as gantry
 writes them. Then the uploads under `DATA_DIR/uploads` move into storage, and
-the history's entries name them. The files under `uploads/` stay where they
-were, unused. There's no way back but restoring the database as it was before
-the deploy.
+the history's entries name them, and the `uploads/` folder goes. There's no
+way back but restoring the volume as it was before the deploy.
 
 `test/phoenix` is a database the Phoenix app made through its own code, with
 its uploads: `TestFromPhoenix` moves it and checks the site, the sign-ins and
