@@ -22,11 +22,7 @@ var All = gantry.MustNew(files)
 // Site is the public page's stylesheets, with the faces on its first
 // screen preloaded, so its text paints once in its font. Archivo is one
 // file for every weight.
-var Site = All.Styles("fonts.css", "site.css").Preload(
-	gantry.Face{Family: "Archivo"},
-	gantry.Face{Family: "Space Mono"},
-	gantry.Face{Family: "Space Mono", Weight: 700},
-)
+var Site = All.Styles("fonts.css", "site.css")
 
 // Admin is the admin's stylesheet, and its sign-in pages'.
 var Admin = All.Styles("admin.css")
