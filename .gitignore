@@ -8,3 +8,4 @@ assets/built/*
 compose.local.yml
 go.work
 go.work.sum
+.gantry/
